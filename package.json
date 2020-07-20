@@ -22,7 +22,7 @@
     "node-fetch": "^2.6.0",
     "redis": "^3.0.2",
     "slugify": "^1.4.4",
-    "websocket": "1.0.31"
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {}
 }

@@ -2,6 +2,7 @@ const fetch = require("node-fetch");
 const { baseResponse } = require("../../utils/helper");
 const User = require("../../models/User");
 const jwt = require("jsonwebtoken");
+const e = require("cors");
 
 const login = async (req, res, next) => {
     try{
@@ -23,34 +24,29 @@ const login = async (req, res, next) => {
             return;
         }
         const {email, name, picture, id} = await request.json();
-        const user = await User.findOne({uid: id});
+        let user = await User.findOne({uid: id});
+        if(!user){
+            user = await User.create({
+                uid: id,
+                email: email,
+                fullName: name,
+                avatar: picture.data.url
+            });
+        }
         const tokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
         const refreshTokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 60);
         const token = await jwt.sign({uid: user.id,  exp: tokenExpiredAt}, global.privateKey);
         const refreshToken = await jwt.sign({uid: user.id,  exp: refreshTokenExpiredAt}, global.privateKey);
-        if(user){
-            user.accessToken = token;
-            user.refreshToken = refreshToken;
-            await user.save();
-            baseResponse.json(res, 200, 'Đăng nhập thành công.', {
-                accessToken: token,
-                refreshToken: refreshToken,
-                expiredAt: tokenExpiredAt
-            });
-            return;
-        }
-        await User.create({
-            uid: id,
-            email: email,
-            fullName: name,
-            avatar: picture.data.url,
-            accessToken: token
-        });
+        user.accessToken = token;
+        user.refreshToken = refreshToken;
+        await user.save();
         baseResponse.json(res, 200, 'Đăng nhập thành công.', {
             accessToken: token,
-            expiredAt: expiredAt
+            refreshToken: refreshToken,
+            expiredAt: tokenExpiredAt
         });
     }catch(error){
+        console.log(error)
         baseResponse.error(res);
     }
 }

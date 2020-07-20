@@ -37,8 +37,8 @@ const getUserInfo = async (req, res, next) => {
 const updateUserInfo = async (req, res, next) => {
     try{
         const {id} = req.params;
-        const {fullName, email, notification} = req.body;
-        if(req.user._id !== id){
+        const {fullName, email, notification, address} = req.body;
+        if(req.user.id !== id){
             baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
             return;
         }
@@ -66,7 +66,7 @@ const updateUserInfo = async (req, res, next) => {
 updateUserAvatar = async (req, res, next) => {
     try{
         const {id} = req.params;
-        if(req.user._id !== id){
+        if(req.user.id !== id){
             console.log(req.user);
             baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
             return;
