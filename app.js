@@ -11,6 +11,7 @@ const app = express();
 
 const v1Router = require('./routes/v1');
 const v1RouterAuth = require('./routes/v1/authenticated');
+const { baseResponse, logger, logRequest } = require('./utils/helper');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -18,24 +19,24 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(morgan('common'));
 app.use(express.static('static'));
-app.use('/v1', v1Router);
-app.use('/v1', v1RouterAuth);
+
+app.use(function(req, res, next) {
+  logRequest(req);
+  next();
+});
 
 global.privateKey = fs.readFileSync('private.key');
 
+app.use('/v1', v1Router);
+app.use('/v1', v1RouterAuth);
+
+
 app.use(function(req, res, next) {
-  res.status(404).json({
-    status: 404,
-    message: 'Địa chỉ không tồn tại.'
-  });
+  baseResponse.json(res, 404, 'Địa chỉ không tồn tại.');
 });
 
 app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.json({
-    status: err.status || 500,
-    message: err.message
-  });
+  baseResponse.error(res, err.status || 500, err.message || 'Có lỗi xảy ra, vui lòng thử lại sau.');
 });
 
 if(process.env.NODE_ENV === "development"){

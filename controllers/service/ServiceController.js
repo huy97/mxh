@@ -14,6 +14,7 @@ const getProvinces = async (req, res, next) => {
         }
         baseResponse.success(res, 200, "Thành công", provinces);
     }catch(e){
+        logger.error(e);
         baseResponse.error(res);
     }
 };
@@ -29,6 +30,7 @@ const getDistricts = async (req, res, next) => {
         }
         baseResponse.success(res, 200, "Thành công", districts);
     }catch(e){
+        logger.error(e);
         baseResponse.error(res);
     }
 };
@@ -44,6 +46,7 @@ const getSubDistricts = async (req, res, next) => {
         }
         baseResponse.success(res, 200, "Thành công", subDistricts);
     }catch(e){
+        logger.error(e);
         baseResponse.error(res);
     }
 };

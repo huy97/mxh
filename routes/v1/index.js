@@ -6,6 +6,8 @@ const router = express.Router();
 
 router.post('/login', [], AuthController.login);
 router.post('/refresh-token', [], AuthController.refreshToken);
+
+//Service
 router.get('/provinces', [], ServiceController.getProvinces);
 router.get('/provinces/:provinceId/districts', [], ServiceController.getDistricts);
 router.get('/provinces/:provinceId/districts/:districtId/subdistricts', [], ServiceController.getSubDistricts);

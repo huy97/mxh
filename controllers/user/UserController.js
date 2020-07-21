@@ -18,7 +18,7 @@ const getUserInfo = async (req, res, next) => {
         const {id} = req.params;
         let user = JSON.parse(await get(id));
         if(!user){
-            user = await User.findById(id, {password: 0});
+            user = await User.findById(id, {password: 0, accessToken: 0, refreshToken: 0});
             set(id, JSON.stringify(user));
         }
         if(!user){
@@ -29,7 +29,7 @@ const getUserInfo = async (req, res, next) => {
             user
         });
     }catch(e){
-        console.log(e);
+        logger.error(e);
         baseResponse.error(res);
     }
 }
@@ -37,7 +37,8 @@ const getUserInfo = async (req, res, next) => {
 const updateUserInfo = async (req, res, next) => {
     try{
         const {id} = req.params;
-        const {fullName, email, notification, address} = req.body;
+        const {fullName, email, notification} = req.body;
+        const { addressDetail = "" } = req.body.address;
         if(req.user.id !== id){
             baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
             return;
@@ -50,7 +51,13 @@ const updateUserInfo = async (req, res, next) => {
         const updated = await User.findByIdAndUpdate(id, {
             fullName,
             email,
-            notification
+            notification,
+            address: {
+                province: req.province,
+                district: req.district,
+                subDistrict: req.subDistrict,
+                addressDetail
+            }
         }, {
             new: true
         });
@@ -59,11 +66,12 @@ const updateUserInfo = async (req, res, next) => {
             user: updated
         });
     }catch(e){
+        logger.error(e);
         baseResponse.error(res);
     }
 }
 
-updateUserAvatar = async (req, res, next) => {
+const updateUserAvatar = async (req, res, next) => {
     try{
         const {id} = req.params;
         if(req.user.id !== id){
@@ -112,6 +120,7 @@ updateUserAvatar = async (req, res, next) => {
             });
         });
     }catch(e){
+        logger.error(e);
         baseResponse.error(res);
     }
 }

@@ -45,8 +45,8 @@ const login = async (req, res, next) => {
             refreshToken: refreshToken,
             expiredAt: tokenExpiredAt
         });
-    }catch(error){
-        console.log(error)
+    }catch(e){
+        logger.error(e);
         baseResponse.error(res);
     }
 }
@@ -80,7 +80,7 @@ const refreshToken = async (req, res, next) => {
             baseResponse.error(res, 404, 'User không tồn tại.');
         }
     }catch(error){
-        console.log(error);
+        logger.error(error);
         if(error instanceof jwt.TokenExpiredError){
             baseResponse.error(res, 419, 'Token đã hết hạn.');
             return;

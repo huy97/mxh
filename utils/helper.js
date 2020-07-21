@@ -1,4 +1,20 @@
+const winston = require('winston');
+const moment = require('moment');
+
 const {MEDIA_TYPE} = require('./constant');
+
+const logger = winston.createLogger({
+    format: winston.format.simple(),
+    transports: [
+        new winston.transports.File({ filename: `logs/${moment().format('DD-MM-YYYY')}.log`}),
+    ],
+});
+
+const logRequest = (req) => {
+    logger.info(`${moment().format('DD-MM-YYYY HH:mm:ss')} | ${req.method} | ${req.path} | params: ${JSON.stringify(req.params)} | query: ${JSON.stringify(req.query)}`);
+    logger.info(`${moment().format('DD-MM-YYYY HH:mm:ss')} | ${req.method} | ${req.path} | body: ${JSON.stringify(req.body)}`);
+    logger.info(`${moment().format('DD-MM-YYYY HH:mm:ss')} | ${req.method} | ${req.path} | header: ${JSON.stringify(req.headers)}`);
+}
 
 const baseResponse = {
     json: (response, status = 200, message = 'Thành công', json = {}) => {
@@ -44,6 +60,8 @@ const isEmail = (str) => {
 }
 module.exports = {
     baseResponse,
+    logger,
+    logRequest,
     getFileType,
-    isEmail
+    isEmail,
 }

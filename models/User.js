@@ -9,10 +9,10 @@ const userSchema = new Schema({
     refreshToken: {type: String, default: ""},
     avatar: {type: String, default: ""},
     address: {
-        province:  {type: Object, default: {}},
-        district:  {type: Object, default: {}},
-        subDistrict:  {type: Object, default: {}},
-        addressDetail: {type: String, default: ""}
+        province:  {type: Object},
+        district:  {type: Object},
+        subDistrict:  {type: Object},
+        addressDetail: {type: String}
     }
 }, {
     timestamps: true
