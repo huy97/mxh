@@ -15,11 +15,11 @@ const me = async (req, res, next) => {
 
 const getUserInfo = async (req, res, next) => {
     try{
-        const {id} = req.params;
-        let user = JSON.parse(await get(id));
+        const {userId} = req.params;
+        let user = JSON.parse(await get(userId));
         if(!user){
-            user = await User.findById(id, {password: 0, accessToken: 0, refreshToken: 0});
-            set(id, JSON.stringify(user));
+            user = await User.findById(userId, {password: 0, accessToken: 0, refreshToken: 0});
+            set(userId, JSON.stringify(user));
         }
         if(!user){
             baseResponse.error(res, 404, 'User không tồn tại.');
@@ -36,10 +36,10 @@ const getUserInfo = async (req, res, next) => {
 
 const updateUserInfo = async (req, res, next) => {
     try{
-        const {id} = req.params;
+        const {userId} = req.params;
         const {fullName, email, notification} = req.body;
         const { addressDetail = "" } = req.body.address;
-        if(req.user.id !== id){
+        if(req.user.id !== userId){
             baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
             return;
         }
@@ -48,7 +48,7 @@ const updateUserInfo = async (req, res, next) => {
             baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', errors.array());
             return;
         }
-        const updated = await User.findByIdAndUpdate(id, {
+        const updated = await User.findByIdAndUpdate(userId, {
             fullName,
             email,
             notification,
@@ -61,7 +61,7 @@ const updateUserInfo = async (req, res, next) => {
         }, {
             new: true
         });
-        set(id, JSON.stringify(updated));
+        set(userId, JSON.stringify(updated));
         baseResponse.json(res, 200, 'Thành công', {
             user: updated
         });
@@ -73,8 +73,8 @@ const updateUserInfo = async (req, res, next) => {
 
 const updateUserAvatar = async (req, res, next) => {
     try{
-        const {id} = req.params;
-        if(req.user.id !== id){
+        const {userId} = req.params;
+        if(req.user.id !== userId){
             console.log(req.user);
             baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
             return;
@@ -104,16 +104,16 @@ const updateUserAvatar = async (req, res, next) => {
             }
             form.uploadDir = "static/images";
             const tmpPath = files.file.path;
-            const newPath = form.uploadDir + '/' + id + '_' + slugify(files.file.name);
+            const newPath = form.uploadDir + '/' + userId + '_' + slugify(files.file.name);
             fs.rename(tmpPath, newPath, async (err) => {
                 let uri = `https://${req.get('host')}${newPath.replace('static', '')}`;
                 if (err) throw Error();
-                const updated = await User.findByIdAndUpdate(id, {
+                const updated = await User.findByIdAndUpdate(userId, {
                     avatar: uri
                 }, {
                     new: true
                 });
-                set(id, JSON.stringify(updated));
+                set(userId, JSON.stringify(updated));
                 baseResponse.json(res, 200, 'Thành công', {
                     user: updated
                 });

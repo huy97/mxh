@@ -13,7 +13,8 @@ const userSchema = new Schema({
         district:  {type: Object},
         subDistrict:  {type: Object},
         addressDetail: {type: String}
-    }
+    },
+    notification: {type: Boolean, default: false}
 }, {
     timestamps: true
 });

@@ -1,24 +1,13 @@
-const { check, param } = require("express-validator");
-const {isEmail} = require('../../../utils/helper');
+const { body } = require("express-validator");
 const Province = require('../../../models/Province');
 const District = require('../../../models/District');
 const SubDistrict = require('../../../models/SubDistrict');
 
 const UpdateUser = [
-    check('fullName').notEmpty().withMessage('Họ tên đầy đủ không được để trống.'),
-    check('email').custom((value) => {
-        if(value && !isEmail(value)){
-            return Promise.reject('Địa chỉ email không hợp lệ.')
-        }
-        return true;
-    }),
-    check('notification').custom((value) => {
-        if(value !== null && value !== undefined && typeof value !== "boolean"){
-            return Promise.reject('Tham số không hợp lệ.')
-        }
-        return true;
-    }),
-    check('address.provinceId').custom(async (code, {req}) => {
+    body('fullName').notEmpty().withMessage('Họ tên đầy đủ không được để trống.'),
+    body('email').optional().isEmail().withMessage('Địa chỉ email không hợp lệ.'),
+    body('notification').optional().isBoolean().withMessage('Tham số không hợp lệ.'),
+    body('address.provinceId').custom(async (code, {req}) => {
         if(code){
             const province = await Province.findOne({code});
             req.province = province;
@@ -26,7 +15,7 @@ const UpdateUser = [
         }
         return true;
     }),
-    check('address.districtId').custom(async (code, {req}) => {
+    body('address.districtId').custom(async (code, {req}) => {
         const {provinceId} = req.body.address;
         if(code){
             const district = await District.findOne({code, parentCode: provinceId});
@@ -35,7 +24,7 @@ const UpdateUser = [
         }
         return true;
     }),
-    check('address.subDistrictId').custom(async (code, {req}) => {
+    body('address.subDistrictId').custom(async (code, {req}) => {
         const {districtId} = req.body.address;
         if(code){
             const subDistrict = await SubDistrict.findOne({code, parentCode: districtId});

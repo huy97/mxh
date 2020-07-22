@@ -24,18 +24,20 @@ const baseResponse = {
             ...json
         });
     },
-    error: (response, status = 500, message = 'Có lỗi xảy ra, vui lòng thử lại sau', errors = []) => {
+    error: (response, status = 500, message = 'Có lỗi xảy ra, vui lòng thử lại sau', errors = [], json = {}) => {
         response.status(status).json({
             status: status,
             message: message,
-            errors
+            errors,
+            ...json
         });
     },
-    success: (response, status = 200, message = 'Thành công', data = []) => {
+    success: (response, status = 200, message = 'Thành công', data = [], json = {}) => {
         response.status(status).json({
             status: status,
             message: message,
-            data
+            data,
+            ...json
         });
     },
 }
@@ -58,10 +60,18 @@ const isEmail = (str) => {
     const regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return regex.test(String(str).toLowerCase());
 }
+
+const defaultStartLimit = (req) => {
+    let start = parseInt(req.params.start || req.query.start || req.body.start || 0);
+    let limit = parseInt(req.params.limit || req.query.limit || req.body.limit || 50);
+    return {start, limit};
+}
+
 module.exports = {
     baseResponse,
     logger,
     logRequest,
     getFileType,
     isEmail,
+    defaultStartLimit
 }

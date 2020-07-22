@@ -1,6 +1,6 @@
 const { body } = require("express-validator");
 
-const CreatePost = [
+const UpdatePost = [
     body('title').notEmpty().withMessage("Vui lòng nhập tiêu đề."),
     body('content').notEmpty().withMessage("Vui lòng nhập nội dung."),
     body('medias').optional().isArray().withMessage('Tham số không hợp lệ.'),
@@ -13,4 +13,4 @@ const CreatePost = [
     })
 ];
 
-module.exports = CreatePost;
+module.exports = UpdatePost;
