@@ -56,9 +56,21 @@ const getFileType = file => {
     }
 };
 
-const isEmail = (str) => {
-    const regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return regex.test(String(str).toLowerCase());
+const getBaseUrl = () => {
+    return process.env.NODE_ENV === "development" ? ("http://127.0.0.1:"+process.env.PORT) : process.env.API_HOST;
+}
+
+const getStaticUrl = (url = "") => {
+    return getBaseUrl() + '/' + url.replace('static', '');
+}
+
+const projectUserField = (prefix = "") => {
+    let object = {};
+    object[`${prefix}address`] = 0;
+    object[`${prefix}accessToken`] = 0;
+    object[`${prefix}refreshToken`] = 0;
+    object[`${prefix}password`] = 0;
+    return object;
 }
 
 const defaultStartLimit = (req) => {
@@ -72,6 +84,8 @@ module.exports = {
     logger,
     logRequest,
     getFileType,
-    isEmail,
+    getBaseUrl,
+    getStaticUrl,
+    projectUserField,
     defaultStartLimit
 }

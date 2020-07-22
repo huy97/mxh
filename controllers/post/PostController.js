@@ -3,7 +3,7 @@ const slugify = require('slugify');
 const { validationResult } = require("express-validator");
 const Post = require('../../models/Post');
 const PostMedia = require('../../models/PostMedia');
-const { baseResponse, logger, defaultStartLimit } = require("../../utils/helper");
+const { baseResponse, logger, defaultStartLimit, getStaticUrl, projectUserField } = require("../../utils/helper");
 const { Types } = require('mongoose');
 
 const show = async (req, res, next) => {
@@ -95,9 +95,7 @@ const show = async (req, res, next) => {
             },
             {
                 $project: {
-                    "user.address": 0,
-                    "user.accessToken": 0,
-                    "user.refreshToken": 0
+                    ...projectUserField('user.')
                 }
             }
         ]);
@@ -238,7 +236,7 @@ const createPost = async (req, res, next) => {
         if(medias.length){
             medias.map((mediaObj) => {
                 let newPath = uploadDir + '/' + Date.now() + '_' + post.id + '_' + slugify(mediaObj.name);
-                let source = `https://${req.get('host')}${newPath.replace('static', '')}`;
+                let source = getStaticUrl(newPath);
                 if(fs.existsSync(mediaObj.path)){
                     fs.renameSync(mediaObj.path, newPath);
                     listMedias.push({

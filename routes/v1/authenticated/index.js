@@ -10,6 +10,8 @@ const UploadController = require('../../../controllers/service/UploadController'
 const UpdatePost = require('../../../middleware/validation/post/UpdatePost');
 const LikeController = require('../../../controllers/post/LikeController');
 const LikePost = require('../../../middleware/validation/post/LikePost');
+const CommentController = require('../../../controllers/post/CommentController');
+const CreateComment = require('../../../middleware/validation/post/CreateComment');
 
 router.use(Authenticate);
 
@@ -31,6 +33,11 @@ router.delete('/post/:postId', [], PostController.deletePost);
     router.get('/post/:postId/like', [], LikeController.getList);
     router.post('/post/:postId/like', [LikePost], LikeController.likePost);
     router.delete('/post/:postId/dislike', [], LikeController.dislikePost);
+    //End
+    //Post comment
+    router.get('/post/:postId/comment', [], CommentController.getList);
+    router.post('/post/:postId/comment', [CreateComment], CommentController.createComment);
+    router.post('/comment/:commentId/reply', [CreateComment], CommentController.createReplyComment);
     //End
 //End
 

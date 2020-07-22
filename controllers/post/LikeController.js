@@ -1,4 +1,4 @@
-const { baseResponse, logger, defaultStartLimit } = require("../../utils/helper");
+const { baseResponse, logger, defaultStartLimit, projectUserField } = require("../../utils/helper");
 const Post = require('../../models/Post');
 const PostLike = require('../../models/PostLike');
 const { validationResult } = require("express-validator");
@@ -43,9 +43,7 @@ const getList = async (req, res, next) => {
             },
             {
                 $project: {
-                    "user.address": 0,
-                    "user.accessToken": 0,
-                    "user.refreshToken": 0
+                    ...projectUserField('user.')
                 }
             }
         ]);

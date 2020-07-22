@@ -2,7 +2,7 @@ const formidable = require('formidable');
 const slugify = require('slugify');
 const fs = require('fs');
 const { validationResult } = require("express-validator");
-const { baseResponse, getFileType } = require("../../utils/helper");
+const { baseResponse, getFileType, getStaticUrl } = require("../../utils/helper");
 const { set, get } = require("../../utils/redis");
 const User = require('../../models/User');
 const { MEDIA_TYPE } = require('../../utils/constant');
@@ -106,7 +106,7 @@ const updateUserAvatar = async (req, res, next) => {
             const tmpPath = files.file.path;
             const newPath = form.uploadDir + '/' + userId + '_' + slugify(files.file.name);
             fs.rename(tmpPath, newPath, async (err) => {
-                let uri = `https://${req.get('host')}${newPath.replace('static', '')}`;
+                let uri = getStaticUrl(newPath);
                 if (err) throw Error();
                 const updated = await User.findByIdAndUpdate(userId, {
                     avatar: uri
