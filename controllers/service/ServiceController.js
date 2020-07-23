@@ -1,5 +1,5 @@
 const {baseResponse} = require('../../utils/helper');
-const {set, get, redisClient} = require('../../utils/redis');
+const {set, get, redisClient} = require('../../services/redis');
 const Province = require('../../models/Province');
 const District = require('../../models/District');
 const SubDistrict = require('../../models/SubDistrict');

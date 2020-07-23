@@ -3,7 +3,7 @@ const slugify = require('slugify');
 const fs = require('fs');
 const { validationResult } = require("express-validator");
 const { baseResponse, getFileType, getStaticUrl } = require("../../utils/helper");
-const { set, get } = require("../../utils/redis");
+const { set, get } = require("../../services/redis");
 const User = require('../../models/User');
 const { MEDIA_TYPE } = require('../../utils/constant');
 

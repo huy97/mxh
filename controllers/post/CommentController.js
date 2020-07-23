@@ -99,6 +99,56 @@ const getList = async (req, res, next) => {
     }
 }
 
+const getListReply = async (req, res, next) => {
+    try{
+        const {commentId} = req.params;
+        const {start, limit} = defaultStartLimit(req);
+        const match = {
+            parentId: Types.ObjectId(commentId)
+        };
+        const commentQuery = PostComment.aggregate([
+            {
+                $match: match
+            },
+            {
+                $sort: {
+                    _id: -1
+                }
+            },
+            {
+                $skip: start
+            },
+            {
+                $limit: limit
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            {
+                $unwind: "$user"
+            },
+            {
+                $project: {
+                    ...projectUserField('user.')
+                }
+            }
+        ]);
+        const totalQuery = PostComment.countDocuments(match);
+        const [comments, total] = await Promise.all([commentQuery, totalQuery]);
+        baseResponse.success(res, 200, 'Thành công', comments, {
+            total
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
 const createComment = async (req, res, next) => {
     try{
         const {postId} = req.params;
@@ -165,8 +215,72 @@ const createReplyComment = async (req, res, next) => {
     }
 }
 
+const updateComment = async (req, res, next) => {
+    try{
+        const {commentId} = req.params;
+        const {content} = req.body;
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', errors.array());
+            return;
+        };
+        const comment = await PostComment.findById(commentId);
+        if(!comment){
+            baseResponse.json(res, 404, "Bình luận không tồn tại.");
+            return;
+        }
+        if(req.user.id != comment.userId){
+            baseResponse.json(res, 403, "Bạn không có quyền thực hiện chức năng này.");
+            return;
+        }
+        comment.content = content;
+        await comment.save();
+        baseResponse.json(res, 200, "Thành công", {
+            comment
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
+const deleteComment = async (req, res, next) => {
+    try{
+        const {commentId} = req.params;
+        const comment = await PostComment.findById(commentId);
+        if(!comment){
+            baseResponse.json(res, 404, "Bình luận không tồn tại.");
+            return;
+        }
+        if(req.user.id != comment.userId){
+            baseResponse.json(res, 403, "Bạn không có quyền thực hiện chức năng này.");
+            return;
+        }
+        const commentQuery = [comment.remove(), PostComment.findByIdAndUpdate(comment.postId, {
+            $inc: {
+                comment: -1
+            }
+        })];
+        if(comment.type === COMMENT_TYPE.COMMENT){
+            commentQuery.push(
+                PostComment.deleteMany({parentId: comment._id})
+            );
+        }
+        const [] = await Promise.all(commentQuery);
+        baseResponse.json(res, 200, "Thành công", {
+            deleted: comment
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
 module.exports = {
     getList,
+    getListReply,
     createComment,
-    createReplyComment
+    createReplyComment,
+    updateComment,
+    deleteComment
 }
