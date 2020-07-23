@@ -1,8 +1,7 @@
 const fetch = require("node-fetch");
-const { baseResponse } = require("../../utils/helper");
+const { baseResponse, logger } = require("../../utils/helper");
 const User = require("../../models/User");
 const jwt = require("jsonwebtoken");
-const e = require("cors");
 
 const login = async (req, res, next) => {
     try{
