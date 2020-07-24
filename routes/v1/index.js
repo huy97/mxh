@@ -16,6 +16,7 @@ const CommentController = require('../../controllers/post/CommentController');
 const CreateComment = require('../../middleware/validation/post/CreateComment');
 const ConversationController = require('../../controllers/message/ConversationController');
 const CreateConversation = require('../../middleware/validation/conversation/CreateConversation');
+const MessageController = require('../../controllers/message/MessageController');
 
 router.post('/login', [], AuthController.login);
 router.post('/refresh-token', [], AuthController.refreshToken);
@@ -59,6 +60,7 @@ router.delete('/post/:postId', [], PostController.deletePost);
 //Conversation
 router.get('/conversations', [], ConversationController.getList);
 router.post('/conversations', [CreateConversation], ConversationController.createConversation);
+router.get('/conversations/:conversationId/messages', [], MessageController.getList);
 //End
 //Upload
 router.post('/upload/images', [], UploadController.uploadImage);

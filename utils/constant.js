@@ -1,7 +1,13 @@
 const SALT_ROUND = 10;
 
-const DEFAULT_COVER = "";
-const DEFAULT_AVATAR = "";
+const DEFAULT_COVER = "static/images/default/default.jpg";
+const DEFAULT_AVATAR = "static/images/default/default.jpg";
+
+const GENDER = {
+    MALE: 1,
+    FEMALE: 2,
+    UNKNOWN: 3
+}
 
 const MEDIA_TYPE = {
     AUDIO: "AUDIO",
@@ -41,5 +47,6 @@ module.exports = {
     EMOJI_TYPE,
     COMMENT_TYPE,
     MESSAGE_STATUS,
-    MESSAGE_EVENT
+    MESSAGE_EVENT,
+    GENDER
 };

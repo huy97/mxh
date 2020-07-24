@@ -2,10 +2,10 @@ const formidable = require('formidable');
 const slugify = require('slugify');
 const fs = require('fs');
 const { validationResult } = require("express-validator");
-const { baseResponse, getFileType, getStaticUrl } = require("../../utils/helper");
+const { baseResponse, getFileType, getStaticUrl, logger } = require("../../utils/helper");
 const { set, get } = require("../../services/redis");
 const User = require('../../models/User');
-const { MEDIA_TYPE } = require('../../utils/constant');
+const { MEDIA_TYPE, DEFAULT_COVER, DEFAULT_AVATAR } = require('../../utils/constant');
 
 const me = async (req, res, next) => {
     baseResponse.json(res, 200, 'Thành công.', {
@@ -37,7 +37,7 @@ const getUserInfo = async (req, res, next) => {
 const updateUserInfo = async (req, res, next) => {
     try{
         const {userId} = req.params;
-        const {fullName, email, notification} = req.body;
+        const {fullName, email, gender, birthday, notification} = req.body;
         const { addressDetail = "" } = req.body.address;
         if(req.user.id !== userId){
             baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
@@ -52,6 +52,8 @@ const updateUserInfo = async (req, res, next) => {
             fullName,
             email,
             notification,
+            gender,
+            birthday,
             address: {
                 province: req.province,
                 district: req.district,
@@ -102,8 +104,8 @@ const updateUserAvatar = async (req, res, next) => {
                 return;
             }
             form.uploadDir = "static/images";
-            let avatarUrl = "";
-            let coverUrl = "";
+            let avatarUrl = getStaticUrl(DEFAULT_AVATAR);
+            let coverUrl = getStaticUrl(DEFAULT_COVER);
             if(files.avatar && files.avatar.size){
                 const newPath = form.uploadDir + '/avatar/' + userId + '_' + slugify(files.avatar.name);
                 fs.renameSync(files.avatar.path, newPath);

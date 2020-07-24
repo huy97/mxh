@@ -202,9 +202,7 @@ const getList = async (req, res, next) => {
             },
             {
                 $project: {
-                    "user.address": 0,
-                    "user.accessToken": 0,
-                    "user.refreshToken": 0
+                    ...projectUserField('users.')
                 }
             }
         ]);

@@ -53,10 +53,10 @@ const getList = async (req, res, next) => {
                             }
                         },
                         {
-                            $limit: 2
+                            $sort: {_id: -1}
                         },
                         {
-                            $sort: {_id: -1}
+                            $limit: 2
                         },
                         {
                             $lookup: {

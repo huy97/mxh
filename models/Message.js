@@ -17,4 +17,4 @@ messageSchema.index({
     conversationId: 1
 });
 
-module.exports = mongoose.model('Conversation', messageSchema);
+module.exports = mongoose.model('Message', messageSchema);

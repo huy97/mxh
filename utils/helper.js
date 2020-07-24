@@ -11,14 +11,18 @@ const logger = winston.createLogger({
     ],
 });
 
-const logRequest = (req) => {
+const logRequest = (req, res) => {
     logger.info(`${moment().format('DD-MM-YYYY HH:mm:ss')} | ${req.method} | ${req.path} | params: ${JSON.stringify(req.params)} | query: ${JSON.stringify(req.query)}`);
     logger.info(`${moment().format('DD-MM-YYYY HH:mm:ss')} | ${req.method} | ${req.path} | body: ${JSON.stringify(req.body)}`);
     logger.info(`${moment().format('DD-MM-YYYY HH:mm:ss')} | ${req.method} | ${req.path} | header: ${JSON.stringify(req.headers)}`);
+    if(res){
+        
+    }
 }
 
 const baseResponse = {
     json: (response, status = 200, message = 'Thành công', json = {}) => {
+        logger.info(`${moment().format('DD-MM-YYYY HH:mm:ss')} | ${response.req.method} | ${response.req.path} | ${status} | ${message} | response: ${JSON.stringify(json)}`);
         response.status(status).json({
             status: status,
             message: message,
@@ -26,6 +30,7 @@ const baseResponse = {
         });
     },
     error: (response, status = 500, message = 'Có lỗi xảy ra, vui lòng thử lại sau', errors = [], json = {}) => {
+        logger.info(`${moment().format('DD-MM-YYYY HH:mm:ss')} | ${response.req.method} | ${response.req.path} | ${status} | ${message} | response: ${JSON.stringify(errors)} | json: ${JSON.stringify(json)}`);
         response.status(status).json({
             status: status,
             message: message,
@@ -34,6 +39,7 @@ const baseResponse = {
         });
     },
     success: (response, status = 200, message = 'Thành công', data = [], json = {}) => {
+        logger.info(`${moment().format('DD-MM-YYYY HH:mm:ss')} | ${response.req.method} | ${response.req.path} | ${status} | ${message} | response: ${JSON.stringify(data)} | json: ${JSON.stringify(json)}`);
         response.status(status).json({
             status: status,
             message: message,
@@ -93,5 +99,6 @@ module.exports = {
     getStaticUrl,
     projectUserField,
     defaultStartLimit,
-    isEmpty
+    isEmpty,
+    isNullOrUndefined
 }

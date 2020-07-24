@@ -35,7 +35,6 @@ const login = async (req, res, next) => {
         user.accessToken = token;
         user.refreshToken = refreshToken;
         await user.save();
-        console.log(Date.now())
         baseResponse.json(res, 200, 'Đăng nhập thành công.', {
             accessToken: token,
             refreshToken: refreshToken,
