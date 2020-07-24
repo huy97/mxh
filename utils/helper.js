@@ -77,6 +77,8 @@ const projectUserField = (prefix = "") => {
     object[`${prefix}accessToken`] = 0;
     object[`${prefix}refreshToken`] = 0;
     object[`${prefix}password`] = 0;
+    object[`${prefix}socketId`] = 0;
+    object[`${prefix}fcmToken`] = 0;
     return object;
 }
 

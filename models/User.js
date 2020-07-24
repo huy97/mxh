@@ -9,6 +9,8 @@ const userSchema = new Schema({
     email: {type: String, default: ""},
     accessToken: {type: String, default: "", required: true},
     refreshToken: {type: String, default: "", required: true},
+    socketId: {type: String, default: ""},
+    fcmToken: {type: String, default: ""},
     avatar: {type: String, default: getStaticUrl(DEFAULT_AVATAR)},
     cover: {type: String, default: getStaticUrl(DEFAULT_COVER)},
     address: {

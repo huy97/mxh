@@ -2,7 +2,7 @@ const formidable = require('formidable');
 const slugify = require('slugify');
 const fs = require('fs');
 const { validationResult } = require("express-validator");
-const { baseResponse, getFileType, getStaticUrl, logger } = require("../../utils/helper");
+const { baseResponse, getFileType, getStaticUrl, logger, projectUserField } = require("../../utils/helper");
 const { set, get } = require("../../services/redis");
 const User = require('../../models/User');
 const { MEDIA_TYPE, DEFAULT_COVER, DEFAULT_AVATAR } = require('../../utils/constant');
@@ -18,7 +18,7 @@ const getUserInfo = async (req, res, next) => {
         const {userId} = req.params;
         let user = JSON.parse(await get(userId));
         if(!user){
-            user = await User.findById(userId, {password: 0, accessToken: 0, refreshToken: 0});
+            user = await User.findById(userId, {...projectUserField()});
             set(userId, JSON.stringify(user));
         }
         if(!user){

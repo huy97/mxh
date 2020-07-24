@@ -123,11 +123,13 @@ const createConversation = async (req, res, next) => {
                 message
             }))
         }
-        const [listUsers] = await Promise.all(queryQueue);
+        const [listUsers, userManagers, lastMessage] = await Promise.all(queryQueue);
         baseResponse.json(res, 200, 'Thành công', {
             conversation: {
                 ...conversation.toJSON(),
-                users: listUsers
+                users: userManagers,
+                userInfos: listUsers,
+                lastMessage
             }
         });
     }catch(e){
