@@ -1,4 +1,8 @@
 const SALT_ROUND = 10;
+
+const DEFAULT_COVER = "";
+const DEFAULT_AVATAR = "";
+
 const MEDIA_TYPE = {
     AUDIO: "AUDIO",
     VIDEO: "VIDEO",
@@ -25,10 +29,17 @@ const MESSAGE_STATUS = {
     READ: "READ"
 }
 
+const MESSAGE_EVENT = {
+
+}
+
 module.exports = {
     SALT_ROUND,
+    DEFAULT_AVATAR,
+    DEFAULT_COVER,
     MEDIA_TYPE,
     EMOJI_TYPE,
     COMMENT_TYPE,
-    MESSAGE_STATUS
+    MESSAGE_STATUS,
+    MESSAGE_EVENT
 };

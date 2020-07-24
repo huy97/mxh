@@ -3,10 +3,10 @@ const { COMMENT_TYPE } = require('../utils/constant');
 const Schema = mongoose.Schema;
 
 const postCommentSchema = new Schema({
-    postId: {type: mongoose.Types.ObjectId},
-    userId: {type: mongoose.Types.ObjectId},
-    content: {type: String, default: ""},
-    type: {type: String, default: COMMENT_TYPE.COMMENT},
+    postId: {type: mongoose.Types.ObjectId, required: true},
+    userId: {type: mongoose.Types.ObjectId, required: true},
+    content: {type: String, default: "", required: true, trim: true},
+    type: {type: String, default: COMMENT_TYPE.COMMENT, required: true},
     reply: {type: Number, default: 0},
     parentId: {type: mongoose.Types.ObjectId}
 }, {

@@ -10,8 +10,7 @@ const fs = require('fs');
 const app = express();
 
 const v1Router = require('./routes/v1');
-const v1RouterAuth = require('./routes/v1/authenticated');
-const { baseResponse, logger, logRequest } = require('./utils/helper');
+const { baseResponse, logRequest } = require('./utils/helper');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -28,8 +27,6 @@ app.use(function(req, res, next) {
 global.privateKey = fs.readFileSync('private.key');
 
 app.use('/v1', v1Router);
-app.use('/v1', v1RouterAuth);
-
 
 app.use(function(req, res, next) {
   baseResponse.json(res, 404, 'Địa chỉ không tồn tại.');

@@ -1,5 +1,6 @@
 const winston = require('winston');
 const moment = require('moment');
+const {isNullOrUndefined} = require('util');
 
 const {MEDIA_TYPE} = require('./constant');
 
@@ -57,11 +58,11 @@ const getFileType = file => {
 };
 
 const getBaseUrl = () => {
-    return process.env.NODE_ENV === "development" ? ("http://127.0.0.1:"+process.env.PORT) : process.env.API_HOST;
+    return process.env.NODE_ENV === "development" ? ("http://127.0.0.1:" + process.env.PORT) : process.env.API_HOST;
 }
 
 const getStaticUrl = (url = "") => {
-    return getBaseUrl() + '/' + url.replace('static', '');
+    return getBaseUrl() + '/' + url.replace('static/', '');
 }
 
 const projectUserField = (prefix = "") => {
@@ -79,6 +80,10 @@ const defaultStartLimit = (req) => {
     return {start, limit};
 }
 
+const isEmpty = (string) => {
+    return !isNullOrUndefined(string) && !string.length;
+}
+
 module.exports = {
     baseResponse,
     logger,
@@ -87,5 +92,6 @@ module.exports = {
     getBaseUrl,
     getStaticUrl,
     projectUserField,
-    defaultStartLimit
+    defaultStartLimit,
+    isEmpty
 }

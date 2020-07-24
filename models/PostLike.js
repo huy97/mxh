@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const postLikeSchema = new Schema({
-    postId: {type: mongoose.Types.ObjectId},
-    userId: {type: mongoose.Types.ObjectId},
+    postId: {type: mongoose.Types.ObjectId, required: true},
+    userId: {type: mongoose.Types.ObjectId, required: true},
     emojiType: {type: Number, default: 1}
 }, {
     timestamps: true

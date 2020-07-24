@@ -1,5 +1,6 @@
 const fetch = require("node-fetch");
 const { baseResponse, logger } = require("../../utils/helper");
+const {FB, FacebookApiException} = require('fb');
 const User = require("../../models/User");
 const jwt = require("jsonwebtoken");
 
@@ -16,13 +17,8 @@ const login = async (req, res, next) => {
             ]);
             return;
         }
-        const url = `https://graph.facebook.com/v7.0/me?access_token=${accessToken}&fields=email,name,picture.height(200)`;
-        const request = await fetch(url);
-        if(request.status !== 200){
-            baseResponse.error(res, request.status, request.statusText);
-            return;
-        }
-        const {email, name, picture, id} = await request.json();
+        FB.setAccessToken(accessToken);
+        const {email, name, picture, id} = await FB.api("me", { fields: "email,name,picture.height(200)" });
         let user = await User.findOne({uid: id});
         if(!user){
             user = await User.create({
@@ -39,13 +35,19 @@ const login = async (req, res, next) => {
         user.accessToken = token;
         user.refreshToken = refreshToken;
         await user.save();
+        console.log(Date.now())
         baseResponse.json(res, 200, 'Đăng nhập thành công.', {
             accessToken: token,
             refreshToken: refreshToken,
-            expiredAt: tokenExpiredAt
+            expiredAt: tokenExpiredAt,
+            user: user
         });
     }catch(e){
         logger.error(e);
+        if(e instanceof FacebookApiException){
+            baseResponse.json(res, 400, 'accessToken không hợp lệ hoặc hết hạn.');
+            return;
+        }
         baseResponse.error(res);
     }
 }
