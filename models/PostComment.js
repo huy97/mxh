@@ -18,4 +18,4 @@ postCommentSchema.index({
     userId: 1
 });
 
-module.exports = mongoose.model('PostComment', postCommentSchema);
+module.exports = mongoose.model('PostComment', postCommentSchema, "post_comments");

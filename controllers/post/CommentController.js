@@ -38,7 +38,7 @@ const getList = async (req, res, next) => {
             },
             {
                 $lookup: {
-                    from: "postcomments",
+                    from: "post_comments",
                     let: {
                         commentId: "$_id"
                     },

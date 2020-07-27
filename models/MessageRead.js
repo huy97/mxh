@@ -13,4 +13,4 @@ messageReadSchema.index({
     userId: 1
 });
 
-module.exports = mongoose.model('MessageRead', messageReadSchema);
+module.exports = mongoose.model('MessageRead', messageReadSchema, "message_reads");

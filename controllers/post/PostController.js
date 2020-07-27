@@ -37,7 +37,7 @@ const show = async (req, res, next) => {
             },
             {
                 $lookup: {
-                    from: "postlikes",
+                    from: "post_likes",
                     let: {
                         postId: "$_id"
                     },
@@ -62,7 +62,7 @@ const show = async (req, res, next) => {
             },
             {
                 $lookup: {
-                    from: "postlikes",
+                    from: "post_likes",
                     let: {
                         postId: "$_id"
                     },
@@ -144,7 +144,7 @@ const getList = async (req, res, next) => {
             },
             {
                 $lookup: {
-                    from: "postlikes",
+                    from: "post_likes",
                     let: {
                         postId: "$_id"
                     },
@@ -169,7 +169,7 @@ const getList = async (req, res, next) => {
             },
             {
                 $lookup: {
-                    from: "postlikes",
+                    from: "post_likes",
                     let: {
                         postId: "$_id"
                     },

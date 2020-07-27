@@ -1,4 +1,3 @@
-const fetch = require("node-fetch");
 const { baseResponse, logger } = require("../../utils/helper");
 const {FB, FacebookApiException} = require('fb');
 const User = require("../../models/User");
@@ -30,8 +29,10 @@ const login = async (req, res, next) => {
         }
         const tokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
         const refreshTokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 60);
-        const token = await jwt.sign({uid: user.id,  exp: tokenExpiredAt}, global.privateKey);
-        const refreshToken = await jwt.sign({uid: user.id,  exp: refreshTokenExpiredAt}, global.privateKey);
+        const [token, refreshToken] = await Promise.all([
+            jwt.sign({uid: user.id,  exp: tokenExpiredAt}, global.privateKey),
+            jwt.sign({uid: user.id,  exp: refreshTokenExpiredAt}, global.privateKey)
+        ]);
         user.accessToken = token;
         user.refreshToken = refreshToken;
         await user.save();

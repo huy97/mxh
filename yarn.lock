@@ -1536,11 +1536,6 @@ nib@~1.1.2:
   dependencies:
     stylus "0.54.5"
 
-node-fetch@^2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
-  integrity sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==
-
 node-redis-scripty@0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/node-redis-scripty/-/node-redis-scripty-0.0.5.tgz#4bf2d365ab6dab202cc08b7ac63f8f55aadc9625"

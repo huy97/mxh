@@ -1,7 +1,12 @@
-const { logger, baseResponse, defaultStartLimit } = require("../../utils/helper");
+const { Types } = require("mongoose");
+const { validationResult } = require("express-validator");
+const { logger, baseResponse, defaultStartLimit, projectUserField, htmlEntities } = require("../../utils/helper");
 const Message = require("../../models/Message");
 const MessageRead = require("../../models/MessageRead");
-const { Types } = require("mongoose");
+const ConversationUser = require("../../models/ConversationUser");
+const Conversation = require("../../models/Conversation");
+const User = require("../../models/User");
+const {queue} = require("../../services/queue");
 
 const getList = async (req, res, next) => {
     try{
@@ -22,7 +27,7 @@ const getList = async (req, res, next) => {
             },
             {
                 $lookup: {
-                    from: "messagereads",
+                    from: "message_reads",
                     localField: "_id",
                     foreignField: "messageId",
                     as: "reads"
@@ -40,6 +45,79 @@ const getList = async (req, res, next) => {
     }
 }
 
+
+const createMessage = async (req, res, next) => {
+    try{
+        const {conversationId} = req.params;
+        const {message} = req.body;
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', errors.array());
+            return;
+        }
+        const [conversation, conversationUsers] = await Promise.all([Conversation.findById(conversationId), ConversationUser.find({conversationId: conversationId})]);
+        if(!conversation){
+            baseResponse.json(res, 404, "Cuộc hội thoại không tồn tại.");
+            return;
+        }
+        const uniqueUsers = conversationUsers.filter((obj) => obj.userId != req.user.id).map((obj) => obj.userId);
+        const queryMessage = Message.create({
+            conversationId: conversationId,
+            from: req.user.id,
+            to: uniqueUsers,
+            message: htmlEntities(message)
+        });
+        const queryListUser = User.find({_id: {$in: conversationUsers.map((obj) => obj.userId)}}, {...projectUserField()});
+        const [createdMessage, listUsers] = await Promise.all([queryMessage, queryListUser]);
+        queue.create('message', {
+            to: uniqueUsers,
+            conversation: {
+                ...conversation.toJSON(),
+                users: conversationUsers,
+                userInfos: listUsers,
+                lastMessage: message
+            },
+            message: message
+        }).save();
+        baseResponse.json(res, 200, 'Thành công', {
+            message: createdMessage
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
+const readMessage = async (req, res, next) => {
+    try{
+        const {messageId} = req.params;
+        const [message, readingExist] = await Promise.all([Message.findById(messageId), MessageRead.findOne({messageId, userId: req.user.id})]);
+        if(!message){
+            baseResponse.json(res, 404, "Tin nhắn không tồn tại.");
+            return;
+        }
+        if(readingExist){
+            baseResponse.json(res, 200, "Thành công", {
+                reading: readingExist
+            });
+            return;
+        }
+        const reading = await MessageRead.create({
+            userId: req.user.id,
+            messageId
+        });
+        queue.create("reading", {reading, messageId, userId: req.user.id}).save();
+        baseResponse.json(res, 200, "Thành công", {
+            reading
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
 module.exports = {
-    getList
+    getList,
+    createMessage,
+    readMessage
 }

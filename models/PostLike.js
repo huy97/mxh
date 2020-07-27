@@ -14,4 +14,4 @@ postLikeSchema.index({
     userId: 1
 });
 
-module.exports = mongoose.model('PostLike', postLikeSchema);
+module.exports = mongoose.model('PostLike', postLikeSchema, "post_likes");

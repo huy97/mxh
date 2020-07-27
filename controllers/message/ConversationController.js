@@ -1,9 +1,11 @@
-const { logger, baseResponse, isEmpty, projectUserField, defaultStartLimit } = require("../../utils/helper");
+const { logger, baseResponse, isEmpty, projectUserField, defaultStartLimit, htmlEntities } = require("../../utils/helper");
 const { validationResult } = require("express-validator");
 const ConversationUser = require("../../models/ConversationUser");
 const Conversation = require("../../models/Conversation");
 const User = require("../../models/User");
 const Message = require("../../models/Message");
+const {queue} = require("../../services/queue");
+const { Types } = require("mongoose");
 
 const getList = async (req, res, next) =>{
     try{
@@ -11,7 +13,7 @@ const getList = async (req, res, next) =>{
         const conversationQuery = Conversation.aggregate([
             {
                 $lookup: {
-                    from: "conversationusers",
+                    from: "conversation_users",
                     localField: "_id",
                     foreignField: "conversationId",
                     as: "users"
@@ -95,9 +97,9 @@ const getList = async (req, res, next) =>{
 const createConversation = async (req, res, next) => {
     try{
         const {users, title, message = ""} = req.body;
-        const erorrs = validationResult(req);
-        if(!erorrs.isEmpty()){
-            baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', erorrs.array());
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', errors.array());
             return;
         }
         const uniqueUsers = Array.from(new Set(users));
@@ -113,17 +115,23 @@ const createConversation = async (req, res, next) => {
                 isManager: userId === req.user.id
             }
         });
-        const queryQueue = [User.find({_id: {$in: uniqueUsers}}, {...projectUserField()}), ConversationUser.create(conversationUsers)];
+        const queryList = [User.find({_id: {$in: uniqueUsers}}, {...projectUserField()}), ConversationUser.create(conversationUsers)];
         uniqueUsers.pop();
         if(!isEmpty(message)){
-            queryQueue.push(Message.create({
+            queryList.push(Message.create({
                 conversationId: conversation.id,
                 from: req.user.id,
                 to: uniqueUsers,
-                message
-            }))
+                message: htmlEntities(message)
+            }));
         }
-        const [listUsers, userManagers, lastMessage] = await Promise.all(queryQueue);
+        const [listUsers, userManagers, lastMessage] = await Promise.all(queryList);
+        queue.create('conversation', {to: uniqueUsers, conversation: {
+            ...conversation.toJSON(),
+            users: userManagers,
+            userInfos: listUsers,
+            lastMessage
+        }}).save();
         baseResponse.json(res, 200, 'Thành công', {
             conversation: {
                 ...conversation.toJSON(),
@@ -138,7 +146,44 @@ const createConversation = async (req, res, next) => {
     }
 }
 
+const checkExist = async (req, res, next) => {
+    try{
+        const {userId} = req.params;
+        const queryConversation = await Conversation.aggregate([
+            {
+                $lookup: {
+                    from: "conversation_users",
+                    localField: "_id",
+                    foreignField: "conversationId",
+                    as: "users"
+                }
+            },
+            {
+                $match: {"users.userId": req.user._id, "users.userId": Types.ObjectId(userId)}
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "users.userId",
+                    foreignField: "_id",
+                    as: "userInfos"
+                }
+            },
+            {
+                $project: {
+                    ...projectUserField('userInfos.')
+                }
+            }
+        ]);
+        baseResponse.success(res, 200, "Thành công", queryConversation);
+    }catch(e){
+        logger(e);
+        baseResponse.error(res);
+    }
+}
+
 module.exports = {
     getList,
-    createConversation
+    createConversation,
+    checkExist
 }

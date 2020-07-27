@@ -17,6 +17,8 @@ const CreateComment = require('../../middleware/validation/post/CreateComment');
 const ConversationController = require('../../controllers/message/ConversationController');
 const CreateConversation = require('../../middleware/validation/conversation/CreateConversation');
 const MessageController = require('../../controllers/message/MessageController');
+const jwt = require('jsonwebtoken');
+const User = require('../../models/User');
 
 router.post('/login', [], AuthController.login);
 router.post('/refresh-token', [], AuthController.refreshToken);
@@ -25,9 +27,14 @@ router.post('/refresh-token', [], AuthController.refreshToken);
 router.get('/provinces', [], ServiceController.getProvinces);
 router.get('/provinces/:provinceId/districts', [], ServiceController.getDistricts);
 router.get('/provinces/:provinceId/districts/:districtId/subdistricts', [], ServiceController.getSubDistricts);
+router.get('/fake-login/:id', [], async (req, res, next) => {
+    const tokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
+    const newToken = await jwt.sign({uid: req.params.id,  exp: tokenExpiredAt}, global.privateKey);
+    const user = await User.findByIdAndUpdate(req.params.id, {accessToken: newToken}, {new: true});
+    res.send(user.toJSON());
+});
 
 //Authenticated here
-
 router.use(Authenticate);
 
 //User
@@ -60,10 +67,14 @@ router.delete('/post/:postId', [], PostController.deletePost);
 //Conversation
 router.get('/conversations', [], ConversationController.getList);
 router.post('/conversations', [CreateConversation], ConversationController.createConversation);
+router.get('/conversations/:userId', [], ConversationController.checkExist);
 router.get('/conversations/:conversationId/messages', [], MessageController.getList);
+router.post('/conversations/:conversationId/messages', [], MessageController.createMessage);
+router.get('/messages/:messageId/reading', [], MessageController.readMessage);
 //End
 //Upload
 router.post('/upload/images', [], UploadController.uploadImage);
 //End
+
 
 module.exports = router;

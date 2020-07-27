@@ -14,4 +14,4 @@ conversationUserSchema.index({
     userId: 1
 });
 
-module.exports = mongoose.model('ConversationUser', conversationUserSchema);
+module.exports = mongoose.model('ConversationUser', conversationUserSchema, "conversation_users");

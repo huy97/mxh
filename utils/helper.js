@@ -92,6 +92,10 @@ const isEmpty = (string) => {
     return !isNullOrUndefined(string) && !string.length;
 }
 
+const htmlEntities = (str) => {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 module.exports = {
     baseResponse,
     logger,
@@ -102,5 +106,6 @@ module.exports = {
     projectUserField,
     defaultStartLimit,
     isEmpty,
-    isNullOrUndefined
+    isNullOrUndefined,
+    htmlEntities
 }

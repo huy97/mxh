@@ -16,4 +16,4 @@ postMediaSchema.index({
     postId: 1
 });
 
-module.exports = mongoose.model('PostMedia', postMediaSchema);
+module.exports = mongoose.model('PostMedia', postMediaSchema, "post_medias");

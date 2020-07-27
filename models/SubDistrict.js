@@ -19,4 +19,4 @@ subDistrictSchema.index({
     },
 });
 
-module.exports = mongoose.model('SubDistrict', subDistrictSchema);
+module.exports = mongoose.model('SubDistrict', subDistrictSchema, "sub_districts");
