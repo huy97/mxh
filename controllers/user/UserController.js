@@ -39,7 +39,8 @@ const updateUserInfo = async (req, res, next) => {
         const {userId} = req.params;
         const {fullName, email, gender, birthday, notification} = req.body;
         const { addressDetail = "" } = req.body.address;
-        if(req.user.id !== userId){
+        const currentUser = req.user;
+        if(currentUser.id !== userId){
             baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
             return;
         }
@@ -48,19 +49,20 @@ const updateUserInfo = async (req, res, next) => {
             baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', errors.array());
             return;
         }
-        const updated = await User.findByIdAndUpdate(userId, {
-            fullName,
-            email,
-            notification,
-            gender,
-            birthday,
+        const updateField = {
+            fullName: fullName ? fullName : currentUser.fullName,
+            email: email ? email : currentUser.email,
+            notification: notification ? notification : currentUser.notification,
+            gender: gender ? gender : currentUser.gender,
+            birthday: birthday ? birthday : currentUser.birthday,
             address: {
-                province: req.province,
-                district: req.district,
-                subDistrict: req.subDistrict,
+                province: req.province ? req.province : null,
+                district: req.district ? req.district : null,
+                subDistrict: req.subDistrict ? req.subDistrict : null,
                 addressDetail
             }
-        }, {
+        };
+        const updated = await User.findByIdAndUpdate(userId, updateField, {
             new: true
         });
         set(userId, JSON.stringify(updated));
