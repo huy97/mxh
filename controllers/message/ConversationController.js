@@ -85,6 +85,9 @@ const getList = async (req, res, next) =>{
         ]);
         const totalQuery = ConversationUser.countDocuments({userId: req.user._id});
         const [conversations, total] = await Promise.all([conversationQuery, totalQuery]);
+        conversations.map((conversation) => {
+            conversation.userInfos = conversation.userInfos.filter((obj) => obj._id != req.user.id);
+        });
         baseResponse.success(res, 200, 'Thành công', conversations, {
             total
         });
@@ -129,14 +132,14 @@ const createConversation = async (req, res, next) => {
         queue.create('conversation', {to: uniqueUsers, conversation: {
             ...conversation.toJSON(),
             users: userManagers,
-            userInfos: listUsers,
+            userInfos: listUsers.filter((obj) => obj._id != req.user.id),
             lastMessage
         }}).save();
         baseResponse.json(res, 200, 'Thành công', {
             conversation: {
                 ...conversation.toJSON(),
                 users: userManagers,
-                userInfos: listUsers,
+                userInfos: listUsers.filter((obj) => obj._id != req.user.id),
                 lastMessage
             }
         });
