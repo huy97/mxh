@@ -39,9 +39,11 @@ router.use(Authenticate);
 
 //User
 router.get('/user', [], UserController.me);
+router.get('/user/find', [], UserController.getList);
 router.get('/user/:userId', [], UserController.getUserInfo);
 router.put('/user/:userId', [UpdateUser], UserController.updateUserInfo);
 router.put('/user/:userId/avatar', [], UserController.updateUserAvatar);
+router.put('/user/:userId/update-fcmtoken', [], UserController.updateFCMToken);
 router.get('/user/:userId/post', [], PostController.getList);
 //End
 //Post
@@ -68,8 +70,10 @@ router.delete('/post/:postId', [], PostController.deletePost);
 router.get('/conversations', [], ConversationController.getList);
 router.post('/conversations', [CreateConversation], ConversationController.createConversation);
 router.get('/conversations/:userId', [], ConversationController.checkExist);
+router.delete('/conversations/:conversationId', [], ConversationController.deleteConversation);
 router.get('/conversations/:conversationId/messages', [], MessageController.getList);
 router.post('/conversations/:conversationId/messages', [], MessageController.createMessage);
+router.delete('/messages/:messageId', [], MessageController.deleteMessage);
 router.get('/messages/:messageId/reading', [], MessageController.readMessage);
 //End
 //Upload

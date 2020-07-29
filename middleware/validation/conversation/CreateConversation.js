@@ -14,7 +14,7 @@ const CreateConversation = [
         if(!user) return Promise.reject('User không tồn tại.');
         return true;
     }),
-    body('title').notEmpty().withMessage('Vui lòng nhập tiêu đề.')
+    // body('title').notEmpty().withMessage('Vui lòng nhập tiêu đề.')
 ];
 
 module.exports = CreateConversation;

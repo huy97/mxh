@@ -6,8 +6,9 @@ const User = require("../../models/User");
 const Message = require("../../models/Message");
 const {queue} = require("../../services/queue");
 const { Types } = require("mongoose");
+const MessageRead = require("../../models/MessageRead");
 
-const getList = async (req, res, next) =>{
+const getList = async (req, res, next) => {
     try{
         const {start, limit} = defaultStartLimit(req);
         const conversationQuery = Conversation.aggregate([
@@ -22,6 +23,10 @@ const getList = async (req, res, next) =>{
             {
                 $project: {
                     _id: 1,
+                    isGroup: 1,
+                    title: 1,
+                    color: 1,
+                    createdAt: 1,
                     "users.userId": 1,
                     "users.isManager": 1
                 }
@@ -107,9 +112,10 @@ const createConversation = async (req, res, next) => {
         }
         const uniqueUsers = Array.from(new Set(users));
         uniqueUsers.push(req.user.id);
+        const isGroup = uniqueUsers.length > 2;
         const conversation = await Conversation.create({
             title,
-            isGroup: uniqueUsers.length > 2
+            isGroup 
         });
         const conversationUsers = uniqueUsers.map((userId) => {
             return {
@@ -118,8 +124,8 @@ const createConversation = async (req, res, next) => {
                 isManager: userId === req.user.id
             }
         });
-        const queryList = [User.find({_id: {$in: uniqueUsers}}, {...projectUserField()}), ConversationUser.create(conversationUsers)];
         uniqueUsers.pop();
+        const queryList = [User.find({_id: {$in: uniqueUsers}}, {...projectUserField()}), ConversationUser.create(conversationUsers)];
         if(!isEmpty(message)){
             queryList.push(Message.create({
                 conversationId: conversation.id,
@@ -129,17 +135,24 @@ const createConversation = async (req, res, next) => {
             }));
         }
         const [listUsers, userManagers, lastMessage] = await Promise.all(queryList);
+        const projectUserManagers = userManagers.map((obj) => {
+            return {
+                _id: obj._id,
+                isManager: obj.isManager,
+                userId: obj.userId
+            }
+        });
         queue.create('conversation', {to: uniqueUsers, conversation: {
             ...conversation.toJSON(),
-            users: userManagers,
-            userInfos: listUsers.filter((obj) => obj._id != req.user.id),
+            users: projectUserManagers,
+            userInfos: listUsers,
             lastMessage
         }}).save();
         baseResponse.json(res, 200, 'Thành công', {
             conversation: {
                 ...conversation.toJSON(),
-                users: userManagers,
-                userInfos: listUsers.filter((obj) => obj._id != req.user.id),
+                users: projectUserManagers,
+                userInfos: listUsers,
                 lastMessage
             }
         });
@@ -152,13 +165,24 @@ const createConversation = async (req, res, next) => {
 const checkExist = async (req, res, next) => {
     try{
         const {userId} = req.params;
-        const queryConversation = await Conversation.aggregate([
+        const conversations = await Conversation.aggregate([
             {
                 $lookup: {
                     from: "conversation_users",
                     localField: "_id",
                     foreignField: "conversationId",
                     as: "users"
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    isGroup: 1,
+                    title: 1,
+                    color: 1,
+                    createdAt: 1,
+                    "users.userId": 1,
+                    "users.isManager": 1
                 }
             },
             {
@@ -178,9 +202,38 @@ const checkExist = async (req, res, next) => {
                 }
             }
         ]);
-        baseResponse.success(res, 200, "Thành công", queryConversation);
+        conversations.map((conversation) => {
+            conversation.userInfos = conversation.userInfos.filter((obj) => obj._id != req.user.id);
+        });
+        baseResponse.success(res, 200, "Thành công", conversations);
     }catch(e){
         logger(e);
+        baseResponse.error(res);
+    }
+}
+
+const deleteConversation = async (req, res, next) => {
+    try{
+        const {conversationId} = req.params;
+        const conversationUser = await ConversationUser.findOne({conversationId, userId: req.user._id});
+        if(!conversationUser){
+            baseResponse.json(res, 404, "Cuộc hội thoại của tài khoản này không tồn tại.");
+            return;
+        }
+        if(!conversationUser.isManager){
+            baseResponse.json(res, 403, "Bạn không có quyền xoá cuộc hội thoại này.");
+            return;
+        }
+        const stackQuery = [
+            ConversationUser.deleteMany({conversationId}),
+            Message.deleteMany({conversationId}),
+            MessageRead.deleteMany({conversationId}),
+            Conversation.deleteOne({conversationId})
+        ];
+        await Promise.all(stackQuery);
+        baseResponse.json(res, 200, 'Thành công');
+    }catch(e){
+        logger.error(e);
         baseResponse.error(res);
     }
 }
@@ -188,5 +241,6 @@ const checkExist = async (req, res, next) => {
 module.exports = {
     getList,
     createConversation,
-    checkExist
+    checkExist,
+    deleteConversation
 }

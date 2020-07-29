@@ -2,7 +2,7 @@ const formidable = require('formidable');
 const slugify = require('slugify');
 const fs = require('fs');
 const { validationResult } = require("express-validator");
-const { baseResponse, getFileType, getStaticUrl, logger, projectUserField } = require("../../utils/helper");
+const { baseResponse, getFileType, getStaticUrl, logger, projectUserField, defaultStartLimit, isEmpty } = require("../../utils/helper");
 const { set, get } = require("../../services/redis");
 const User = require('../../models/User');
 const { MEDIA_TYPE, DEFAULT_COVER, DEFAULT_AVATAR } = require('../../utils/constant');
@@ -27,6 +27,26 @@ const getUserInfo = async (req, res, next) => {
         }
         baseResponse.json(res, 200, 'Thành công.', {
             user
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
+const getList = async (req, res, next) => {
+    try{
+        const {keyword} = req.query;
+        const {start, limit} = defaultStartLimit(req);
+        const find = {};
+        if(!isEmpty(keyword)){
+            find.$text = {$search: keyword};
+        }
+        const queryUser = User.find(find, {_id: 1, fullName: 1, avatar: 1}).skip(start).limit(limit);
+        const queryTotal = User.countDocuments(find);
+        const [users, total] = await Promise.all([queryUser, queryTotal]);
+        baseResponse.success(res, 200, 'Thành công', users, {
+            total
         });
     }catch(e){
         logger.error(e);
@@ -135,9 +155,34 @@ const updateUserAvatar = async (req, res, next) => {
     }
 }
 
+const updateFCMToken = async (req, res, next) => {
+    try{
+        const {userId} = req.params;
+        const {token = ""} = req.body;
+        if(req.user.id !== userId){
+            baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
+            return;
+        }
+        const updated = await User.findByIdAndUpdate(userId, {
+            fcmToken: token
+        }, {
+            new: true
+        });
+        set(userId, JSON.stringify(updated));
+        baseResponse.json(res, 200, 'Thành công', {
+            user: updated
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
 module.exports = {
     me,
+    getList,
     getUserInfo,
     updateUserInfo,
-    updateUserAvatar
+    updateUserAvatar,
+    updateFCMToken
 }

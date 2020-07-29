@@ -80,7 +80,32 @@ const createMessage = async (req, res, next) => {
             message: message
         }).save();
         baseResponse.json(res, 200, 'Thành công', {
-            message: createdMessage
+            item: createdMessage
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
+const deleteMessage = async (req, res, next) => {
+    try{
+        const {messageId} = req.params;
+        const message = await Message.findById(messageId);
+        if(!message){
+            baseResponse.json(res, 404, "Tin nhắn không tồn tại.");
+            return;
+        }
+        if(message.from != req.user.id){
+            baseResponse.json(res, 403, "Bạn không có quyền thực hiện thao tác này.");
+            return;
+        }
+        await Promise.all([
+            message.delete(),
+            MessageRead.deleteMany({messageId})
+        ]);
+        baseResponse.json(res, 200, "Thành công", {
+            item: message
         });
     }catch(e){
         logger.error(e);
@@ -104,6 +129,7 @@ const readMessage = async (req, res, next) => {
         }
         const reading = await MessageRead.create({
             userId: req.user.id,
+            conversationId: message.conversationId,
             messageId
         });
         queue.create("reading", {reading, messageId, userId: req.user.id}).save();
@@ -119,5 +145,6 @@ const readMessage = async (req, res, next) => {
 module.exports = {
     getList,
     createMessage,
-    readMessage
+    readMessage,
+    deleteMessage
 }

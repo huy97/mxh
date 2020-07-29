@@ -89,7 +89,7 @@ const defaultStartLimit = (req) => {
 }
 
 const isEmpty = (string) => {
-    return !isNullOrUndefined(string) && !string.length;
+    return isNullOrUndefined(string) || !string.length;
 }
 
 const htmlEntities = (str) => {

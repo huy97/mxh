@@ -28,7 +28,10 @@ const userSchema = new Schema({
 
 userSchema.index({
     uid: 1,
-    accessToken: 1,
+    accessToken: 1
+});
+
+userSchema.index({
     fullName: 'text',
 }, {
     weights: {
