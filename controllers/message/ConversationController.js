@@ -83,6 +83,14 @@ const getList = async (req, res, next) => {
                 $unwind: "$lastMessage"
             },
             {
+                $lookup: {
+                    from: "message_reads",
+                    localField: "lastMessage._id",
+                    foreignField: "messageId",
+                    as: "lastMessage.reads"
+                }
+            },
+            {
                 $project: {
                     ...projectUserField('userInfos.')
                 }
