@@ -202,7 +202,7 @@ const getList = async (req, res, next) => {
             },
             {
                 $project: {
-                    ...projectUserField('users.')
+                    ...projectUserField('user.')
                 }
             }
         ]);
