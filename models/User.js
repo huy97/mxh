@@ -21,7 +21,8 @@ const userSchema = new Schema({
     },
     gender: {type: Number, default: GENDER.UNKNOWN},
     birthday: {type: Number, default: null},
-    notification: {type: Boolean, default: false}
+    notification: {type: Boolean, default: false},
+    online: {type: Boolean, default: false}
 }, {
     timestamps: true
 });

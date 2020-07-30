@@ -11,6 +11,7 @@ const init = (port) => {
         const { accessToken } = socket.handshake.query;
         authorization(accessToken, socket);
         onTypingMessage(socket);
+        disconnectSocket(socket);
     });
 
 }
@@ -25,6 +26,7 @@ const authorization = async (accessToken, socket) => {
             return;
         }
         user.socketId = socket.id;
+        user.online = true;
         await user.save();
         socket.emit('authorization', {status: 200, message: "Thành công."});
     }catch (e) {
@@ -63,6 +65,12 @@ const onTypingMessage = (socket) => {
             conversationId,
             isTyping
         });
+    });
+}
+
+const disconnectSocket = (socket) => {
+    socket.on('disconnect', async () => {
+        await User.findOneAndUpdate({socketId: socket.id}, {online: false});
     });
 }
 
