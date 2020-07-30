@@ -155,7 +155,7 @@ const getList = async (req, res, next) => {
                                     { $eq: [ "$postId",  "$$postId" ] },
                                 ]
                             },
-                            "userId": req.user.id
+                            "userId": req.user._id
                         }
                     }],
                     as: "likeInfo"
