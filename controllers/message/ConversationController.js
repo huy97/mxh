@@ -20,81 +20,81 @@ const getList = async (req, res, next) => {
                     as: "users"
                 }
             },
-            // {
-            //     $project: {
-            //         _id: 1,
-            //         isGroup: 1,
-            //         title: 1,
-            //         color: 1,
-            //         createdAt: 1,
-            //         "users.userId": 1,
-            //         "users.isManager": 1
-            //     }
-            // },
-            // {
-            //     $match: { users: { $elemMatch: { userId: req.user._id } } }
-            // },
-            // {
-            //     $sort: {
-            //         _id: -1
-            //     }
-            // },
-            // {
-            //     $skip: start
-            // },
-            // {
-            //     $limit: limit
-            // },
-            // {
-            //     $lookup: {
-            //         from: "users",
-            //         localField: "users.userId",
-            //         foreignField: "_id",
-            //         as: "userInfos"
-            //     }
-            // },
-            // {
-            //     $lookup: {
-            //         from: "messages",
-            //         let: {
-            //             conversationId: "$_id"
-            //         },
-            //         pipeline: [
-            //             {
-            //                 $match: {
-            //                     $expr: {
-            //                         $and: [
-            //                             { $eq: [ "$conversationId",  "$$conversationId" ] },
-            //                         ]
-            //                     }
-            //                 }
-            //             },
-            //             {
-            //                 $sort: {_id: -1}
-            //             },
-            //             {
-            //                 $limit: 1
-            //             }
-            //         ],
-            //         as: "lastMessage"
-            //     }
-            // },
-            // {
-            //     $unwind: "$lastMessage"
-            // },
-            // {
-            //     $lookup: {
-            //         from: "message_reads",
-            //         localField: "lastMessage._id",
-            //         foreignField: "messageId",
-            //         as: "lastMessage.reads"
-            //     }
-            // },
-            // {
-            //     $project: {
-            //         ...projectUserField('userInfos.')
-            //     }
-            // }
+            {
+                $project: {
+                    _id: 1,
+                    isGroup: 1,
+                    title: 1,
+                    color: 1,
+                    createdAt: 1,
+                    "users.userId": 1,
+                    "users.isManager": 1
+                }
+            },
+            {
+                $match: { users: { $elemMatch: { userId: req.user._id } } }
+            },
+            {
+                $sort: {
+                    _id: -1
+                }
+            },
+            {
+                $skip: start
+            },
+            {
+                $limit: limit
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "users.userId",
+                    foreignField: "_id",
+                    as: "userInfos"
+                }
+            },
+            {
+                $lookup: {
+                    from: "messages",
+                    let: {
+                        conversationId: "$_id"
+                    },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: [ "$conversationId",  "$$conversationId" ] },
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            $sort: {_id: -1}
+                        },
+                        {
+                            $limit: 1
+                        }
+                    ],
+                    as: "lastMessage"
+                }
+            },
+            {
+                $unwind: "$lastMessage"
+            },
+            {
+                $lookup: {
+                    from: "message_reads",
+                    localField: "lastMessage._id",
+                    foreignField: "messageId",
+                    as: "lastMessage.reads"
+                }
+            },
+            {
+                $project: {
+                    ...projectUserField('userInfos.')
+                }
+            }
         ]);
         const totalQuery = ConversationUser.countDocuments({userId: req.user._id});
         const [conversations, total] = await Promise.all([conversationQuery, totalQuery]);
