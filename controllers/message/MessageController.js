@@ -59,7 +59,7 @@ const createMessage = async (req, res, next) => {
             to: uniqueUsers,
             message: htmlEntities(message)
         });
-        const queryListUser = User.find({_id: {$in: conversationUsers.map((obj) => obj.userId)}}, {...projectUserField()});
+        const queryListUser = User.find({_id: {$in: conversationUsers.filter((obj) => obj.userId != req.user.id).map((obj) => obj.userId)}}, {...projectUserField()});
         const [createdMessage, listUsers] = await Promise.all([queryMessage, queryListUser]);
         queue.create('message', {
             to: uniqueUsers,
@@ -69,7 +69,7 @@ const createMessage = async (req, res, next) => {
                 userInfos: listUsers,
                 lastMessage: message
             },
-            message: message
+            message: createdMessage
         }).save();
         baseResponse.json(res, 200, 'Thành công', {
             item: createdMessage
