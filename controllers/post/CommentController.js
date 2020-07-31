@@ -256,7 +256,7 @@ const deleteComment = async (req, res, next) => {
             baseResponse.json(res, 403, "Bạn không có quyền thực hiện chức năng này.");
             return;
         }
-        const commentQuery = [comment.remove(), PostComment.findByIdAndUpdate(comment.postId, {
+        const commentQuery = [comment.delete(), PostComment.findByIdAndUpdate(comment.postId, {
             $inc: {
                 comment: -1
             }

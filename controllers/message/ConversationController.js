@@ -20,81 +20,81 @@ const getList = async (req, res, next) => {
                     as: "users"
                 }
             },
-            {
-                $project: {
-                    _id: 1,
-                    isGroup: 1,
-                    title: 1,
-                    color: 1,
-                    createdAt: 1,
-                    "users.userId": 1,
-                    "users.isManager": 1
-                }
-            },
-            {
-                $match: { users: { $elemMatch: { userId: req.user._id } } }
-            },
-            {
-                $sort: {
-                    _id: -1
-                }
-            },
-            {
-                $skip: start
-            },
-            {
-                $limit: limit
-            },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "users.userId",
-                    foreignField: "_id",
-                    as: "userInfos"
-                }
-            },
-            {
-                $lookup: {
-                    from: "messages",
-                    let: {
-                        conversationId: "$_id"
-                    },
-                    pipeline: [
-                        {
-                            $match: {
-                                $expr: {
-                                    $and: [
-                                        { $eq: [ "$conversationId",  "$$conversationId" ] },
-                                    ]
-                                }
-                            }
-                        },
-                        {
-                            $sort: {_id: -1}
-                        },
-                        {
-                            $limit: 1
-                        }
-                    ],
-                    as: "lastMessage"
-                }
-            },
-            {
-                $unwind: "$lastMessage"
-            },
-            {
-                $lookup: {
-                    from: "message_reads",
-                    localField: "lastMessage._id",
-                    foreignField: "messageId",
-                    as: "lastMessage.reads"
-                }
-            },
-            {
-                $project: {
-                    ...projectUserField('userInfos.')
-                }
-            }
+            // {
+            //     $project: {
+            //         _id: 1,
+            //         isGroup: 1,
+            //         title: 1,
+            //         color: 1,
+            //         createdAt: 1,
+            //         "users.userId": 1,
+            //         "users.isManager": 1
+            //     }
+            // },
+            // {
+            //     $match: { users: { $elemMatch: { userId: req.user._id } } }
+            // },
+            // {
+            //     $sort: {
+            //         _id: -1
+            //     }
+            // },
+            // {
+            //     $skip: start
+            // },
+            // {
+            //     $limit: limit
+            // },
+            // {
+            //     $lookup: {
+            //         from: "users",
+            //         localField: "users.userId",
+            //         foreignField: "_id",
+            //         as: "userInfos"
+            //     }
+            // },
+            // {
+            //     $lookup: {
+            //         from: "messages",
+            //         let: {
+            //             conversationId: "$_id"
+            //         },
+            //         pipeline: [
+            //             {
+            //                 $match: {
+            //                     $expr: {
+            //                         $and: [
+            //                             { $eq: [ "$conversationId",  "$$conversationId" ] },
+            //                         ]
+            //                     }
+            //                 }
+            //             },
+            //             {
+            //                 $sort: {_id: -1}
+            //             },
+            //             {
+            //                 $limit: 1
+            //             }
+            //         ],
+            //         as: "lastMessage"
+            //     }
+            // },
+            // {
+            //     $unwind: "$lastMessage"
+            // },
+            // {
+            //     $lookup: {
+            //         from: "message_reads",
+            //         localField: "lastMessage._id",
+            //         foreignField: "messageId",
+            //         as: "lastMessage.reads"
+            //     }
+            // },
+            // {
+            //     $project: {
+            //         ...projectUserField('userInfos.')
+            //     }
+            // }
         ]);
         const totalQuery = ConversationUser.countDocuments({userId: req.user._id});
         const [conversations, total] = await Promise.all([conversationQuery, totalQuery]);
@@ -110,9 +110,40 @@ const getList = async (req, res, next) => {
     }
 }
 
+const getLastRead = async (req, res, next) => {
+    try{
+        const {conversationId} = req.params;
+        const lastReads = await MessageRead.find({conversationId, userId: {$ne: req.user._id}});
+        baseResponse.success(res, 200, 'Thành công', lastReads);
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
+const getUnreadMessage = async (req, res, next) => {
+    try{
+        const {conversationIds} = req.body;
+        const messageReads = await MessageRead.find({conversationId: {$in: conversationIds}, userId: {$ne: req.user._id}});
+        const unreads = await Promise.all(messageReads.map((obj) => {
+            return Message.countDocuments({ _id : {$gt: obj._id} });
+        }));
+        const dataUnreads = messageReads.map((obj, index) => {
+            return {
+                conversationId: obj.conversationId,
+                totalUnread: unreads[index] || 0
+            }
+        });
+        baseResponse.success(res, 200, 'Thành công', dataUnreads);
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
 const createConversation = async (req, res, next) => {
     try{
-        const {users, title, message = ""} = req.body;
+        const {users, title, color, message = ""} = req.body;
         const errors = validationResult(req);
         if(!errors.isEmpty()){
             baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', errors.array());
@@ -123,6 +154,7 @@ const createConversation = async (req, res, next) => {
         const isGroup = uniqueUsers.length > 2;
         const conversation = await Conversation.create({
             title,
+            color,
             isGroup 
         });
         const conversationUsers = uniqueUsers.map((userId) => {
@@ -236,7 +268,7 @@ const deleteConversation = async (req, res, next) => {
             ConversationUser.deleteMany({conversationId}),
             Message.deleteMany({conversationId}),
             MessageRead.deleteMany({conversationId}),
-            Conversation.deleteOne({conversationId})
+            Conversation.deleteOne({_id: conversationId})
         ];
         await Promise.all(stackQuery);
         baseResponse.json(res, 200, 'Thành công');
@@ -248,6 +280,8 @@ const deleteConversation = async (req, res, next) => {
 
 module.exports = {
     getList,
+    getLastRead,
+    getUnreadMessage,
     createConversation,
     checkExist,
     deleteConversation

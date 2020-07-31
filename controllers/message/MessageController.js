@@ -24,14 +24,6 @@ const getList = async (req, res, next) => {
             },
             {
                 $limit: limit
-            },
-            {
-                $lookup: {
-                    from: "message_reads",
-                    localField: "_id",
-                    foreignField: "messageId",
-                    as: "reads"
-                }
             }
         ]);
         const totalQuery = Message.countDocuments({conversationId});
@@ -115,16 +107,19 @@ const deleteMessage = async (req, res, next) => {
 
 const readMessage = async (req, res, next) => {
     try{
-        const {messageId} = req.params;
-        const [message, readingExist] = await Promise.all([Message.findById(messageId), MessageRead.findOne({messageId, userId: req.user.id})]);
+        const {messageId, conversationId} = req.params;
+        const [message, readingExist] = await Promise.all([Message.findById(messageId), MessageRead.findOne({conversationId, userId: req.user.id})]);
         if(!message){
             baseResponse.json(res, 404, "Tin nhắn không tồn tại.");
             return;
         }
         if(readingExist){
+            readingExist.messageId = messageId;
+            await readingExist.save();
             baseResponse.json(res, 200, "Thành công", {
                 reading: readingExist
             });
+            queue.create("reading", {reading: readingExist, conversationId, messageId, userId: req.user.id}).save();
             return;
         }
         const reading = await MessageRead.create({
@@ -132,7 +127,7 @@ const readMessage = async (req, res, next) => {
             conversationId: message.conversationId,
             messageId
         });
-        queue.create("reading", {reading, messageId, userId: req.user.id}).save();
+        queue.create("reading", {reading, conversationId, messageId, userId: req.user.id}).save();
         baseResponse.json(res, 200, "Thành công", {
             reading
         });

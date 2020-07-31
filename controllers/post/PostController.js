@@ -326,7 +326,7 @@ const deletePost = async (req, res, next) => {
             baseResponse.json(res, 403, "Bạn không có quyền thao tác chức năng này.");
             return;
         }
-        await post.remove();
+        await post.delete();
         baseResponse.json(res, 200, "Thành công", {
             deleted: post
         });

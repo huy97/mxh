@@ -69,12 +69,14 @@ router.delete('/post/:postId', [], PostController.deletePost);
 //Conversation
 router.get('/conversations', [], ConversationController.getList);
 router.post('/conversations', [CreateConversation], ConversationController.createConversation);
+router.post('/conversations/list-unread', [CreateConversation], ConversationController.getUnreadMessage);
 router.get('/conversations/:userId', [], ConversationController.checkExist);
 router.delete('/conversations/:conversationId', [], ConversationController.deleteConversation);
+router.get('/conversations/:conversationId/last-read', [], ConversationController.getLastRead);
 router.get('/conversations/:conversationId/messages', [], MessageController.getList);
+router.get('/conversations/:conversationId/messages/:messageId/reading', [], MessageController.readMessage);
 router.post('/conversations/:conversationId/messages', [], MessageController.createMessage);
 router.delete('/messages/:messageId', [], MessageController.deleteMessage);
-router.get('/messages/:messageId/reading', [], MessageController.readMessage);
 //End
 //Upload
 router.post('/upload/images', [], UploadController.uploadImage);

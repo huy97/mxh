@@ -105,7 +105,7 @@ const dislikePost = async (req, res, next) => {
         }
         let like = await PostLike.findOne({userId: req.user.id, postId});
         if(like){
-            await like.remove();
+            await like.delete();
             baseResponse.json(res, 200, 'Thành công', {
                 deleted: like
             });

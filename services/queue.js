@@ -2,8 +2,8 @@ const kue = require('kue');
 const User = require('../models/User');
 const { logger } = require('../utils/helper');
 const { sendToListUser } = require('./socket');
-const Message = require('../models/Message');
 const { Types } = require('mongoose');
+const ConversationUser = require('../models/ConversationUser');
 const queue = kue.createQueue({});
 
 queue.process('conversation', async (job, done) => {
@@ -47,36 +47,10 @@ queue.process('message', async (job, done) => {
 
 queue.process('reading', async (job, done) => {
     try{
-        const {reading, messageId, userId} = job.data;
-        const conversation = await Message.aggregate([
-            {
-                $match: {_id: Types.ObjectId(messageId)}
-            },
-            {
-                $lookup: {
-                    from: "conversation_users",
-                    localField: "conversationId",
-                    foreignField: "conversationId",
-                    as: "conversationUsers"
-                }
-            },
-            {
-                $unwind: "$conversationUsers"
-            },
-            {
-                $lookup: {
-                    from: "users",
-                    localField: "conversationUsers.userId",
-                    foreignField: "_id",
-                    as: "users"
-                }
-            },
-            {
-                $unwind: "$users"
-            }
-        ]);
-        const listUsers = conversation.filter((obj) => obj.users._id != userId).map((obj) => obj.users.socketId);
-        sendToListUser(listUsers, "reading", {
+        const {reading, conversationId, userId} = job.data;
+        const conversationUsers = await ConversationUser.find({conversationId, userId: {$ne: userId}});
+        const listUsers = await User.find({_id: {$in: conversationUsers.map((obj) => obj.userId)}}, {socketId: 1});
+        sendToListUser(listUsers.map((obj) => obj.socketId), "reading", {
             reading
         });
     }catch(e){
