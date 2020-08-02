@@ -14,4 +14,9 @@ conversationUserSchema.index({
     userId: 1
 });
 
+conversationUserSchema.index({
+    userId: 1,
+    updatedAt: -1
+});
+
 module.exports = mongoose.model('ConversationUser', conversationUserSchema, "conversation_users");

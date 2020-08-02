@@ -85,6 +85,8 @@ const projectUserField = (prefix = "") => {
 const defaultStartLimit = (req) => {
     let start = parseInt(req.params.start || req.query.start || req.body.start || 0);
     let limit = parseInt(req.params.limit || req.query.limit || req.body.limit || 50);
+    if(start < 0) start = 0;
+    if(limit > 50) limit = 50;
     return {start, limit};
 }
 

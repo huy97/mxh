@@ -11,7 +11,11 @@ const MessageRead = require("../../models/MessageRead");
 const getList = async (req, res, next) => {
     try{
         const {start, limit} = defaultStartLimit(req);
+        const conversationUsers = await ConversationUser.find({userId: req.user._id}).sort({updatedAt: -1}).skip(start).limit(limit);
         const conversationQuery = Conversation.aggregate([
+            {
+                $match: {_id: {$in: conversationUsers.map((obj) => obj.conversationId)}}
+            },
             {
                 $lookup: {
                     from: "conversation_users",
@@ -22,28 +26,9 @@ const getList = async (req, res, next) => {
             },
             {
                 $project: {
-                    _id: 1,
-                    isGroup: 1,
-                    title: 1,
-                    color: 1,
-                    createdAt: 1,
                     "users.userId": 1,
                     "users.isManager": 1
                 }
-            },
-            {
-                $match: { users: { $elemMatch: { userId: req.user._id } } }
-            },
-            {
-                $sort: {
-                    _id: -1
-                }
-            },
-            {
-                $skip: start
-            },
-            {
-                $limit: limit
             },
             {
                 $lookup: {
@@ -80,7 +65,10 @@ const getList = async (req, res, next) => {
                 }
             },
             {
-                $unwind: "$lastMessage"
+                $unwind: {
+                    "path": "$lastMessage",
+                    "preserveNullAndEmptyArrays": true
+                }
             },
             {
                 $lookup: {
@@ -125,6 +113,19 @@ const getUnreadMessage = async (req, res, next) => {
     try{
         const {conversationIds} = req.body;
         const messageReads = await MessageRead.find({conversationId: {$in: conversationIds}, userId: {$ne: req.user._id}});
+        if(!messageReads.length){
+            const unreads = await Promise.all(conversationIds.map((conversationId) => {
+                return Message.countDocuments({conversationId});
+            }));
+            const dataUnreads = conversationIds.map((conversationId, index) => {
+                return {
+                    conversationId,
+                    totalUnread: unreads[index] || 0
+                }
+            });
+            baseResponse.success(res, 200, 'Thành công', dataUnreads);
+            return;
+        }
         const unreads = await Promise.all(messageReads.map((obj) => {
             return Message.countDocuments({ _id : {$gt: obj._id} });
         }));

@@ -29,6 +29,7 @@ const authorization = async (accessToken, socket) => {
         user.online = true;
         await user.save();
         socket.emit('authorization', {status: 200, message: "Thành công."});
+        sendToAll("user_online", user);
     }catch (e) {
         logger.error(e);
         if(e instanceof jwt.TokenExpiredError){
@@ -56,6 +57,11 @@ const sendToListUser = (users = [], eventName, data) => {
     });
 }
 
+const sendToAll = (eventName, data) => {
+    logger.info('Send to all users');
+    socketServer.emit(eventName, data);
+}
+
 const onTypingMessage = (socket) => {
     socket.on('typing', async (data) => {
         const {conversationId, listUsers, isTyping} = data;
@@ -70,7 +76,8 @@ const onTypingMessage = (socket) => {
 
 const disconnectSocket = (socket) => {
     socket.on('disconnect', async () => {
-        await User.findOneAndUpdate({socketId: socket.id}, {online: false});
+        const user = await User.findOneAndUpdate({socketId: socket.id}, {online: false}, {new: true});
+        sendToAll("user_online", user);
     });
 }
 

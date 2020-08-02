@@ -11,7 +11,8 @@ const postSchema = new Schema({
 });
 
 postSchema.index({
-    userId: 1
+    userId: 1,
+    updatedAt: -1
 });
 
 module.exports = mongoose.model('Post', postSchema);

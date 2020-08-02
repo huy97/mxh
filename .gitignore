@@ -4,4 +4,5 @@
 /.DS_Store
 /static
 /logs
+/tests/logs
 .env

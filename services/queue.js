@@ -53,6 +53,7 @@ queue.process('reading', async (job, done) => {
         sendToListUser(listUsers.map((obj) => obj.socketId), "reading", {
             reading
         });
+        done();
     }catch(e){
         logger.error(e);
         done();

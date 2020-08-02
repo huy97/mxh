@@ -27,5 +27,7 @@
     "socket.io": "^2.3.0",
     "winston": "^3.3.3"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "faker": "^4.1.0"
+  }
 }

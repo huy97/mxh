@@ -122,7 +122,7 @@ const getList = async (req, res, next) => {
             },
             {
                 $sort: {
-                    _id: -1
+                    updatedAt: -1
                 }
             },
             {
