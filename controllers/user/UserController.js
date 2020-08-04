@@ -36,12 +36,12 @@ const getUserInfo = async (req, res, next) => {
 
 const getList = async (req, res, next) => {
     try{
-        const {keyword} = req.query;
+        const {keyword = ""} = req.query;
         const {start, limit} = defaultStartLimit(req);
-        const find = {};
-        if(!isEmpty(keyword)){
-            find.$text = {$search: keyword};
-        }
+        const find = {
+            _id: {$ne: req.user._id},
+            $text : {$search: keyword}
+        };
         const queryUser = User.find(find, {_id: 1, fullName: 1, avatar: 1}).skip(start).limit(limit);
         const queryTotal = User.countDocuments(find);
         const [users, total] = await Promise.all([queryUser, queryTotal]);
