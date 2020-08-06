@@ -13,4 +13,9 @@ conversationSchema.index({
     updatedAt: 1
 });
 
+conversationSchema.index({
+    _id: 1,
+    updatedAt: -1
+});
+
 module.exports = mongoose.model('Conversation', conversationSchema);

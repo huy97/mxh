@@ -11,10 +11,17 @@ const MessageRead = require("../../models/MessageRead");
 const getList = async (req, res, next) => {
     try{
         const {start, limit} = defaultStartLimit(req);
-        const conversationUsers = await ConversationUser.find({userId: req.user._id}).sort({updatedAt: -1}).skip(start).limit(limit);
+        const {conversationId} = req.params;
+        let match = {};
+        if(conversationId){
+            match = {_id: Types.ObjectId(conversationId)};
+        }else{
+            const conversationUsers = await ConversationUser.find({userId: req.user._id}).sort({updatedAt: -1}).skip(start).limit(limit);
+            match = {_id: {$in: conversationUsers.map((obj) => obj.conversationId)}};
+        }
         const conversationQuery = Conversation.aggregate([
             {
-                $match: {_id: {$in: conversationUsers.map((obj) => obj.conversationId)}}
+                $match: match
             },
             {
                 $lookup: {
@@ -27,7 +34,13 @@ const getList = async (req, res, next) => {
             {
                 $project: {
                     "users.userId": 1,
-                    "users.isManager": 1
+                    "users.isManager": 1,
+                    "updatedAt": 1,
+                }
+            },
+            {
+                $sort: {
+                    updatedAt: -1
                 }
             },
             {
@@ -89,6 +102,12 @@ const getList = async (req, res, next) => {
         conversations.map((conversation) => {
             conversation.userInfos = conversation.userInfos.filter((obj) => obj._id != req.user.id);
         });
+        if(conversationId){
+            baseResponse.json(res, 200, "Thành công", {
+                conversation: conversations.length ? conversations[0] : null
+            });
+            return;
+        }
         baseResponse.success(res, 200, 'Thành công', conversations, {
             total
         });
@@ -151,6 +170,39 @@ const createConversation = async (req, res, next) => {
             return;
         }
         const uniqueUsers = Array.from(new Set(users));
+        if(uniqueUsers.length === 1){
+            let userId = uniqueUsers[0];
+            const conversations = await ConversationUser.aggregate([
+                {
+                    $match: {$or: [{userId: req.user._id}, {userId: Types.ObjectId(userId)}]}
+                },
+                {
+                    $lookup: {
+                        from: "conversations",
+                        localField: "conversationId",
+                        foreignField: "_id",
+                        as: "conversations"
+                    }
+                },
+                {
+                    $match: {"conversations.isGroup": false}
+                },
+                {
+                    $group: {
+                        _id: "$conversationId",
+                        userId1: {$first: "$userId"},
+                        userId2: {$last: "$userId"}
+                    }
+                },
+                {
+                    $match: {$or: [{"userId1": Types.ObjectId(userId), "userId2": req.user._id}, {"userId1": req.user._id, "userId2": Types.ObjectId(userId)}]}
+                }
+            ]);
+            if(conversations.length){
+                baseResponse.error(res, 409, 'Cuộc hội thoại đã tồn tại');
+                return;
+            }
+        }
         uniqueUsers.push(req.user.id);
         const isGroup = uniqueUsers.length > 2;
         const conversation = await Conversation.create({
@@ -206,49 +258,39 @@ const createConversation = async (req, res, next) => {
 const checkExist = async (req, res, next) => {
     try{
         const {userId} = req.params;
-        const conversations = await Conversation.aggregate([
+        const conversations = await ConversationUser.aggregate([
             {
-                $lookup: {
-                    from: "conversation_users",
-                    localField: "_id",
-                    foreignField: "conversationId",
-                    as: "users"
-                }
-            },
-            {
-                $project: {
-                    _id: 1,
-                    isGroup: 1,
-                    title: 1,
-                    color: 1,
-                    createdAt: 1,
-                    "users.userId": 1,
-                    "users.isManager": 1
-                }
-            },
-            {
-                $match: {"users.userId": req.user._id, "users.userId": Types.ObjectId(userId)}
+                $match: {$or: [{userId: req.user._id}, {userId: Types.ObjectId(userId)}]}
             },
             {
                 $lookup: {
-                    from: "users",
-                    localField: "users.userId",
+                    from: "conversations",
+                    localField: "conversationId",
                     foreignField: "_id",
-                    as: "userInfos"
+                    as: "conversations"
                 }
             },
             {
-                $project: {
-                    ...projectUserField('userInfos.')
+                $match: {"conversations.isGroup": false}
+            },
+            {
+                $group: {
+                    _id: "$conversationId",
+                    userId1: {$first: "$userId"},
+                    userId2: {$last: "$userId"}
                 }
+            },
+            {
+                $match: {$or: [{"userId1": Types.ObjectId(userId), "userId2": req.user._id}, {"userId1": req.user._id, "userId2": Types.ObjectId(userId)}]}
             }
         ]);
-        conversations.map((conversation) => {
-            conversation.userInfos = conversation.userInfos.filter((obj) => obj._id != req.user.id);
-        });
-        baseResponse.success(res, 200, "Thành công", conversations);
+        if(conversations.length){
+            req.params = {conversationId: conversations[0]._id}
+            return getList(req, res, next);
+        }
+        baseResponse.success(res, 200, "Thành công");
     }catch(e){
-        logger(e);
+        logger.error(e);
         baseResponse.error(res);
     }
 }
