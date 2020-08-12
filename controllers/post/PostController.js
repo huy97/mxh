@@ -219,7 +219,7 @@ const getList = async (req, res, next) => {
 
 const createPost = async (req, res, next) => {
     try{
-        const {title, content, medias} = req.body;
+        const {title, content, medias = []} = req.body;
         const errors = validationResult(req);
         if(!errors.isEmpty()){
             baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin', errors.array());

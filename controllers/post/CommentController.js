@@ -164,12 +164,13 @@ const createComment = async (req, res, next) => {
             return;
         }
         post.comment += 1;
-        const comment = await PostComment.create({
+        const [comment] = Promise.all([PostComment.create({
             userId: req.user.id,
             postId,
             type: COMMENT_TYPE.COMMENT,
             content
-        });
+        }), post.save()]);
+
         baseResponse.json(res, 200, 'Thành công', {
             comment
         });
@@ -198,14 +199,13 @@ const createReplyComment = async (req, res, next) => {
             return;
         }
         comment.reply += 1;
-        await comment.save();
-        const reply = await PostComment.create({
+        const [reply] = Promise.all([PostComment.create({
             userId: req.user.id,
             postId: comment.postId,
             type: COMMENT_TYPE.REPLY,
             parentId: comment.id,
             content
-        });
+        })], comment.save());
         baseResponse.json(res, 200, 'Thành công', {
             reply
         });
