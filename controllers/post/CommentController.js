@@ -164,7 +164,7 @@ const createComment = async (req, res, next) => {
             return;
         }
         post.comment += 1;
-        const [comment] = Promise.all([PostComment.create({
+        const [comment] = await Promise.all([PostComment.create({
             userId: req.user.id,
             postId,
             type: COMMENT_TYPE.COMMENT,
@@ -199,7 +199,7 @@ const createReplyComment = async (req, res, next) => {
             return;
         }
         comment.reply += 1;
-        const [reply] = Promise.all([PostComment.create({
+        const [reply] = await Promise.all([PostComment.create({
             userId: req.user.id,
             postId: comment.postId,
             type: COMMENT_TYPE.REPLY,
