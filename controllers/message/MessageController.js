@@ -59,7 +59,7 @@ const createMessage = async (req, res, next) => {
             to: uniqueUsers,
             message: htmlEntities(message)
         });
-        const queryListUser = User.find({_id: {$in: conversationUsers.filter((obj) => obj.userId != req.user.id).map((obj) => obj.userId)}}, {...projectUserField()});
+        const queryListUser = User.find({_id: {$in: conversationUsers.map((obj) => obj.userId)}}, {...projectUserField()});
         const [createdMessage, listUsers] = await Promise.all([queryMessage, queryListUser, Conversation.findByIdAndUpdate(conversationId, {__v: 0}), ConversationUser.updateMany({conversationId: conversationId}, {__v: 0})]);
         queue.create('message', {
             to: uniqueUsers,
@@ -67,7 +67,7 @@ const createMessage = async (req, res, next) => {
                 ...conversation.toJSON(),
                 users: conversationUsers,
                 userInfos: listUsers,
-                lastMessage: message
+                lastMessage: createdMessage
             },
             message: createdMessage
         }).save();

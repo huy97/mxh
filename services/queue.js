@@ -1,7 +1,7 @@
 const kue = require('kue');
 const User = require('../models/User');
 const { logger } = require('../utils/helper');
-const { sendToListUser } = require('./socket');
+const { sendToListUser, sendToUser } = require('./socket');
 const { Types } = require('mongoose');
 const ConversationUser = require('../models/ConversationUser');
 const queue = kue.createQueue({});
@@ -35,6 +35,7 @@ queue.process('message', async (job, done) => {
         const users = await User.find({_id: {$in: to}}, {socketId: 1, fcmToken: 1});
         const listSocketId = users.map((obj) => obj.socketId);
         const listFcmToken = users.map((obj) => obj.fcmToken);
+        
         sendToListUser(listSocketId, "conversation", conversation);
         sendToListUser(listSocketId, "message", message);
         done();
@@ -48,7 +49,7 @@ queue.process('message', async (job, done) => {
 queue.process('reading', async (job, done) => {
     try{
         const {reading, conversationId, userId} = job.data;
-        const conversationUsers = await ConversationUser.find({conversationId, userId: {$ne: userId}});
+        const conversationUsers = await ConversationUser.find({conversationId});
         const listUsers = await User.find({_id: {$in: conversationUsers.map((obj) => obj.userId)}}, {socketId: 1});
         sendToListUser(listUsers.map((obj) => obj.socketId), "reading", {
             reading

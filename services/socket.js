@@ -64,11 +64,10 @@ const sendToAll = (eventName, data) => {
 
 const onTypingMessage = (socket) => {
     socket.on('typing', async (data) => {
-        const {conversationId, listUsers, isTyping} = data;
-        const users = await User.find({_id: {$in: listUsers}}, {socketId: 1, fcmToken: 1});
-        const listSocketId = users.map((obj) => obj.socketId);
-        sendToListUser(listSocketId, "typing", {
+        const {conversationId, userTyping, isTyping} = data;
+        sendToAll("typing", {
             conversationId,
+            userTyping,
             isTyping
         });
     });
