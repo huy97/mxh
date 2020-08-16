@@ -42,7 +42,31 @@ const getList = async (req, res, next) => {
             _id: {$ne: req.user._id},
             $text : {$search: keyword}
         };
-        const queryUser = User.find(find, {_id: 1, fullName: 1, avatar: 1}).skip(start).limit(limit);
+        const queryUser = User.find(find, {_id: 1, fullName: 1, avatar: 1, online: 1}).skip(start).limit(limit);
+        const queryTotal = User.countDocuments(find);
+        const [users, total] = await Promise.all([queryUser, queryTotal]);
+        baseResponse.success(res, 200, 'Thành công', users, {
+            total
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
+const getListCustom = async (req, res, next) => {
+    try{
+        const {keyword} = req.query;
+        const {start, limit} = defaultStartLimit(req);
+        let find = {
+            _id: {$ne: req.user._id},
+        };
+        if(keyword){
+            find.$text = {
+                $search: keyword
+            }
+        }
+        const queryUser = User.find(find, {_id: 1, fullName: 1, avatar: 1, online: 1}).skip(start).limit(limit);
         const queryTotal = User.countDocuments(find);
         const [users, total] = await Promise.all([queryUser, queryTotal]);
         baseResponse.success(res, 200, 'Thành công', users, {
@@ -181,6 +205,7 @@ const updateFCMToken = async (req, res, next) => {
 module.exports = {
     me,
     getList,
+    getListCustom,
     getUserInfo,
     updateUserInfo,
     updateUserAvatar,

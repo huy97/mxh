@@ -15,6 +15,7 @@ const Authenticated = async (req, res, next) => {
                     baseResponse.error(res, 401, 'Uỷ quyền thất bại.');
                     return;
                 }
+                user.online = true;
                 req.user = user;
                 next();
             }catch (e) {

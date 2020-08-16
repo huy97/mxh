@@ -40,6 +40,7 @@ router.use(Authenticate);
 //User
 router.get('/user', [], UserController.me);
 router.get('/user/find', [], UserController.getList);
+router.get('/user/find-custom', [], UserController.getListCustom);
 router.get('/user/:userId', [], UserController.getUserInfo);
 router.put('/user/:userId', [UpdateUser], UserController.updateUserInfo);
 router.put('/user/:userId/avatar', [], UserController.updateUserAvatar);

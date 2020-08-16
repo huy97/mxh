@@ -19,7 +19,7 @@ const init = (port) => {
 const authorization = async (accessToken, socket) => {
     try{
         const verify = await jwt.verify(accessToken, global.privateKey);
-        const user = await User.findOne({_id: verify.uid, accessToken}, {password: 0});
+        const user = await User.findOne({_id: verify.uid, accessToken}, {password: 0, accessToken: 0, refreshToken: 0});
         if(!user){
             socket.emit('authorization', {status: 401, message: "Uỷ quyền thất bại."});
             socket.disconnect(true);
@@ -76,7 +76,7 @@ const onTypingMessage = (socket) => {
 
 const disconnectSocket = (socket) => {
     socket.on('disconnect', async () => {
-        const user = await User.findOneAndUpdate({socketId: socket.id}, {online: false}, {new: true});
+        const user = await User.findOneAndUpdate({socketId: socket.id}, {online: false}, {new: true, projection: {accessToken: 0, refreshToken: 0}});
         sendToAll("user_online", user);
     });
 }

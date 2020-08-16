@@ -33,6 +33,8 @@ const getList = async (req, res, next) => {
             },
             {
                 $project: {
+                    "title": 1,
+                    "isGroup": 1,
                     "users.userId": 1,
                     "users.isManager": 1,
                     "updatedAt": 1,
