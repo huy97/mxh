@@ -1,7 +1,10 @@
-const { baseResponse, logger } = require("../../utils/helper");
+const { baseResponse, logger, getStaticUrl } = require("../../utils/helper");
 const {FB, FacebookApiException} = require('fb');
 const User = require("../../models/User");
 const jwt = require("jsonwebtoken");
+const fs = require('fs');
+const request = require('request');
+const slugify = require("slugify");
 
 const login = async (req, res, next) => {
     try{
@@ -23,8 +26,7 @@ const login = async (req, res, next) => {
             user = await User.create({
                 uid: id,
                 email: email,
-                fullName: name,
-                avatar: picture.data.url
+                fullName: name
             });
         }
         const tokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
@@ -33,6 +35,11 @@ const login = async (req, res, next) => {
             jwt.sign({uid: user.id,  exp: tokenExpiredAt}, global.privateKey),
             jwt.sign({uid: user.id,  exp: refreshTokenExpiredAt}, global.privateKey)
         ]);
+        if(!user.avatar && picture.data && picture.data.url){
+            const avatarPath = 'static/images/avatar/' + user.id + '_' + slugify(name).toLowerCase() + '.png';
+            request(picture.data.url).pipe(fs.createWriteStream(avatarPath));
+            user.avatar = getStaticUrl(avatarPath);
+        }
         user.accessToken = token;
         user.refreshToken = refreshToken;
         await user.save();
