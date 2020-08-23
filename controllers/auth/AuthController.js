@@ -20,7 +20,7 @@ const login = async (req, res, next) => {
             return;
         }
         FB.setAccessToken(accessToken);
-        const {email, name, picture, id} = await FB.api("me", { fields: "email,name,picture.height(200)" });
+        const {email, name, picture, id} = await FB.api("me", { fields: "email,name,picture.height(1000)" });
         let user = await User.findOne({uid: id});
         if(!user){
             user = await User.create({
