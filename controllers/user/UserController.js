@@ -81,7 +81,7 @@ const getListCustom = async (req, res, next) => {
 const updateUserInfo = async (req, res, next) => {
     try{
         const {userId} = req.params;
-        const {fullName, email, gender, birthday, notification, address = {}} = req.body;
+        const {fullName, email, gender, birthday, notification, address = {addressDetail: null}} = req.body;
         const { addressDetail = "" } = address;
         const currentUser = req.user;
         if(currentUser.id !== userId){
