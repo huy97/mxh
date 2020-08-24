@@ -81,8 +81,8 @@ const getListCustom = async (req, res, next) => {
 const updateUserInfo = async (req, res, next) => {
     try{
         const {userId} = req.params;
-        const {fullName, email, gender, birthday, notification} = req.body;
-        const { addressDetail = "" } = req.body.address;
+        const {fullName, email, gender, birthday, notification, address = {}} = req.body;
+        const { addressDetail = "" } = address;
         const currentUser = req.user;
         if(currentUser.id !== userId){
             baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
