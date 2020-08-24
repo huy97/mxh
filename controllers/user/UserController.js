@@ -103,7 +103,7 @@ const updateUserInfo = async (req, res, next) => {
                 province: req.province ? req.province : null,
                 district: req.district ? req.district : null,
                 subDistrict: req.subDistrict ? req.subDistrict : null,
-                addressDetail
+                addressDetail: addressDetail ? addressDetail : null
             }
         };
         const updated = await User.findByIdAndUpdate(userId, updateField, {
