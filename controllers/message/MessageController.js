@@ -1,12 +1,14 @@
 const { Types } = require("mongoose");
 const { validationResult } = require("express-validator");
-const { logger, baseResponse, defaultStartLimit, projectUserField, htmlEntities } = require("../../utils/helper");
+const { logger, baseResponse, defaultStartLimit, projectUserField, htmlEntities, getStaticUrl } = require("../../utils/helper");
 const Message = require("../../models/Message");
 const MessageRead = require("../../models/MessageRead");
 const ConversationUser = require("../../models/ConversationUser");
 const Conversation = require("../../models/Conversation");
 const User = require("../../models/User");
 const {queue} = require("../../services/queue");
+const slugify = require('slugify');
+const fs = require('fs');
 
 const getList = async (req, res, next) => {
     try{
@@ -41,7 +43,7 @@ const getList = async (req, res, next) => {
 const createMessage = async (req, res, next) => {
     try{
         const {conversationId} = req.params;
-        const {message} = req.body;
+        const {message, attachments = []} = req.body;
         const errors = validationResult(req);
         if(!errors.isEmpty()){
             baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', errors.array());
@@ -53,11 +55,28 @@ const createMessage = async (req, res, next) => {
             return;
         }
         const uniqueUsers = conversationUsers.filter((obj) => obj.userId != req.user.id).map((obj) => obj.userId);
+        const uploadDir = "static/images/messages";
+        const listAttachments = [];
+        if(attachments.length){
+            attachments.map((file) => {
+                let newPath = uploadDir + '/' + Date.now() + '_' + slugify(file.name);
+                let source = getStaticUrl(newPath);
+                if(fs.existsSync(file.path)){
+                    fs.renameSync(file.path, newPath);
+                    listAttachments.push({
+                        ...file,
+                        path: newPath,
+                        source
+                    });
+                }
+            });
+        }
         const queryMessage = Message.create({
             conversationId: conversationId,
             from: req.user.id,
             to: uniqueUsers,
-            message: htmlEntities(message)
+            message: htmlEntities(message),
+            attachments: listAttachments
         });
         const queryListUser = User.find({_id: {$in: conversationUsers.map((obj) => obj.userId)}}, {...projectUserField()});
         const [createdMessage, listUsers] = await Promise.all([queryMessage, queryListUser, Conversation.findByIdAndUpdate(conversationId, {__v: 0}), ConversationUser.updateMany({conversationId: conversationId}, {__v: 0})]);
@@ -66,9 +85,10 @@ const createMessage = async (req, res, next) => {
             conversation: {
                 ...conversation.toJSON(),
                 users: conversationUsers,
-                userInfos: listUsers,
+                userInfos: listUsers.filter((obj) => obj.id !== req.user.id),
                 lastMessage: createdMessage
             },
+            sender: req.user,
             message: createdMessage
         }).save();
         baseResponse.json(res, 200, 'Thành công', {

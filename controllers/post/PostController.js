@@ -229,7 +229,7 @@ const createPost = async (req, res, next) => {
             title,
             content
         });
-        const uploadDir = "static/posts";
+        const uploadDir = "static/images/posts";
         const listMedias = [];
         if(medias.length){
             medias.map((mediaObj) => {
@@ -276,7 +276,7 @@ const updatePost = async (req, res, next) => {
             return;
         }
         const listMedias = [];
-        const uploadDir = "static/posts";
+        const uploadDir = "static/images/posts";
         if(medias.length){
             medias.map((mediaObj) => {
                 let newPath = uploadDir + '/' + Date.now() + '_' + post.id + '_' + slugify(mediaObj.name);

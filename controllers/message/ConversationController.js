@@ -237,12 +237,16 @@ const createConversation = async (req, res, next) => {
                 userId: obj.userId
             }
         });
-        queue.create('conversation', {to: uniqueUsers, conversation: {
-            ...conversation.toJSON(),
-            users: projectUserManagers,
-            userInfos: listUsers,
-            lastMessage
-        }}).save();
+        queue.create('conversation', {
+            to: uniqueUsers,
+            conversation: {
+                ...conversation.toJSON(),
+                users: projectUserManagers,
+                userInfos: listUsers,
+                lastMessage
+            },
+            sender: req.user
+        }).save();
         baseResponse.json(res, 200, 'Thành công', {
             conversation: {
                 ...conversation.toJSON(),

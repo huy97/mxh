@@ -22,7 +22,7 @@ const uploadImage = async (req, res, next) => {
             }
             let valid = true;
             listFiles.map((file, index) => {
-                if(!file.size){
+                if(!file || !file.size){
                     baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', [
                         {
                             "location": "body",
