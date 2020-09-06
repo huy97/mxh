@@ -9,10 +9,12 @@ admin.initializeApp({
 
 
 const sendToMultipleDevice = async (fcmTokens = [], notification, data, image = false) => {
+  const listFcmTokens = fcmTokens.filter((token) => !isNullOrUndefined(token) && token.length);
+  if(!listFcmTokens.length) return;
   const message = {
     data: data,
     notification: notification,
-    tokens: fcmTokens.filter((token) => !isNullOrUndefined(token) && token.length),
+    tokens: listFcmTokens,
   }
   logger.info("Send notification: " + JSON.stringify(fcmTokens));
   if(image){
