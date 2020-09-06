@@ -1,11 +1,10 @@
 const admin = require("firebase-admin");
 
 const serviceAccount = require("../serviceKey.json");
-const { isNullOrUndefined } = require("../utils/helper");
+const { isNullOrUndefined, logger } = require("../utils/helper");
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://mxh-example.firebaseio.com"
+  credential: admin.credential.cert(serviceAccount)
 });
 
 
@@ -15,6 +14,7 @@ const sendToMultipleDevice = async (fcmTokens = [], notification, data, image = 
     notification: notification,
     tokens: fcmTokens.filter((token) => !isNullOrUndefined(token) && token.length),
   }
+  logger.info("Send notification: " + JSON.stringify(fcmTokens));
   if(image){
     message.apns = {
       payload: {
@@ -33,6 +33,7 @@ const sendToMultipleDevice = async (fcmTokens = [], notification, data, image = 
       }
     }
   }
+  logger.info("Message: " + JSON.stringify(message));
   return admin.messaging().sendMulticast(message);
 }
 
