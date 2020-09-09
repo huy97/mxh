@@ -98,15 +98,6 @@ const htmlEntities = (str) => {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-const getTitle = (conversation) => {
-    if (conversation.isGroup) 
-        return conversation.title;
-    return conversation
-        .userInfos
-        .map((obj) => obj.fullName)
-        .join(', ');
-}
-
 module.exports = {
     baseResponse,
     logger,
@@ -118,6 +109,5 @@ module.exports = {
     defaultStartLimit,
     isEmpty,
     isNullOrUndefined,
-    htmlEntities,
-    getTitle
+    htmlEntities
 }

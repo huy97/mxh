@@ -1,6 +1,6 @@
 const kue = require('kue');
 const User = require('../models/User');
-const { logger, getTitle } = require('../utils/helper');
+const { logger } = require('../utils/helper');
 const { sendToListUser } = require('./socket');
 const { sendToMultipleDevice } = require('./firebase');
 const ConversationUser = require('../models/ConversationUser');
@@ -18,11 +18,12 @@ queue.process('conversation', async (job, done) => {
         const listFcmToken = users.map((obj) => obj.fcmToken);
         sendToListUser(listSocketId, "conversation", conversation);
         sendToListUser(listSocketId, "message", conversation.lastMessage);
+        let title = conversation.isGroup ? conversation.title : sender.fullName;
         let body = conversation.lastMessage.message;
         if(conversation.isGroup){
             body = `${sender.fullName}: ${body}`;
         }
-        sendToMultipleDevice(listFcmToken, {title: getTitle(conversation), body}, {conversationId: conversation._id}, sender.avatar).then((r) => console.log(r));
+        sendToMultipleDevice(listFcmToken, {title, body}, {conversationId: conversation._id}, sender.avatar).then((r) => console.log(r));
         done();
     }catch(e){
         logger.error(e);
@@ -42,11 +43,12 @@ queue.process('message', async (job, done) => {
         const listFcmToken = users.map((obj) => obj.fcmToken);
         sendToListUser(listSocketId, "conversation", conversation);
         sendToListUser(listSocketId, "message", message);
+        let title = conversation.isGroup ? conversation.title : sender.fullName;
         let body = message.message;
         if(conversation.isGroup){
             body = `${sender.fullName}: ${body}`;
         }
-        await sendToMultipleDevice(listFcmToken, {title: getTitle(conversation), body}, {conversationId: message.conversationId}, sender.avatar);
+        await sendToMultipleDevice(listFcmToken, {title, body}, {conversationId: message.conversationId}, sender.avatar);
         done();
     }catch(e){
         logger.error(e);
