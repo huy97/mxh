@@ -23,7 +23,7 @@ queue.process('conversation', async (job, done) => {
         if(conversation.isGroup){
             body = `${sender.fullName}: ${body}`;
         }
-        sendToMultipleDevice(listFcmToken, {title, body}, {conversationId: conversation._id}, sender.avatar).then((r) => console.log(r));
+        await sendToMultipleDevice(listFcmToken, {title, body}, {conversationId: conversation._id});
         done();
     }catch(e){
         logger.error(e);
@@ -48,7 +48,7 @@ queue.process('message', async (job, done) => {
         if(conversation.isGroup){
             body = `${sender.fullName}: ${body}`;
         }
-        await sendToMultipleDevice(listFcmToken, {title, body}, {conversationId: message.conversationId}, sender.avatar);
+        await sendToMultipleDevice(listFcmToken, {title, body}, {conversationId: message.conversationId});
         done();
     }catch(e){
         logger.error(e);
@@ -65,6 +65,19 @@ queue.process('reading', async (job, done) => {
         sendToListUser(listUsers.map((obj) => obj.socketId), "reading", {
             reading
         });
+        done();
+    }catch(e){
+        logger.error(e);
+        done();
+    }
+});
+
+queue.process('notification', async (job, done) => {
+    try{
+        const {title, body, data, userId} = job.data;
+        const users = await User.find({_id: {$ne: userId}}, {fcmToken: 1});
+        const listFcmToken = users.map((obj) => obj.fcmToken);
+        await sendToMultipleDevice(listFcmToken, {title, body}, data);
         done();
     }catch(e){
         logger.error(e);

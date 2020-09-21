@@ -39,6 +39,13 @@ const MESSAGE_EVENT = {
 
 }
 
+const NOTIFICATION_TYPE = {
+    DEFAULT: "DEFAULT",
+    POST: "POST",
+    COMMENT: "COMMENT",
+    REPLY: "REPLY"
+}
+
 module.exports = {
     SALT_ROUND,
     DEFAULT_AVATAR,
@@ -48,5 +55,6 @@ module.exports = {
     COMMENT_TYPE,
     MESSAGE_STATUS,
     MESSAGE_EVENT,
-    GENDER
+    GENDER,
+    NOTIFICATION_TYPE
 };

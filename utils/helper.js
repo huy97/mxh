@@ -1,6 +1,5 @@
 const winston = require('winston');
 const moment = require('moment');
-const {isNullOrUndefined} = require('util');
 
 const {MEDIA_TYPE} = require('./constant');
 
@@ -88,6 +87,10 @@ const defaultStartLimit = (req) => {
     if(start < 0) start = 0;
     if(limit > 50) limit = 50;
     return {start, limit};
+}
+
+const isNullOrUndefined = (object) => {
+    return object === null || object === undefined;
 }
 
 const isEmpty = (string) => {

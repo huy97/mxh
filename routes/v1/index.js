@@ -17,6 +17,7 @@ const CreateComment = require('../../middleware/validation/post/CreateComment');
 const ConversationController = require('../../controllers/message/ConversationController');
 const CreateConversation = require('../../middleware/validation/conversation/CreateConversation');
 const MessageController = require('../../controllers/message/MessageController');
+const NotificationController = require('../../controllers/user/NotificationController');
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
 
@@ -79,6 +80,9 @@ router.get('/conversations/:conversationId/messages', [], MessageController.getL
 router.get('/conversations/:conversationId/messages/:messageId/reading', [], MessageController.readMessage);
 router.post('/conversations/:conversationId/messages', [], MessageController.createMessage);
 router.delete('/messages/:messageId', [], MessageController.deleteMessage);
+//End
+//Notification
+router.get('/notifications', [], NotificationController.getList);
 //End
 //Upload
 router.post('/upload/images', [], UploadController.uploadImage);
