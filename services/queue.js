@@ -4,6 +4,8 @@ const { logger } = require('../utils/helper');
 const { sendToListUser } = require('./socket');
 const { sendToMultipleDevice } = require('./firebase');
 const ConversationUser = require('../models/ConversationUser');
+const Notification = require('../models/Notification');
+const { NOTIFICATION_TYPE } = require('../utils/constant');
 const queue = kue.createQueue({});
 
 queue.process('conversation', async (job, done) => {
@@ -74,10 +76,30 @@ queue.process('reading', async (job, done) => {
 
 queue.process('notification', async (job, done) => {
     try{
-        const {title, body, data, userId} = job.data;
-        const users = await User.find({_id: {$ne: userId}}, {fcmToken: 1});
-        const listFcmToken = users.map((obj) => obj.fcmToken);
-        await sendToMultipleDevice(listFcmToken, {title, body}, data);
+        const {type, params} = job.data;
+        switch(type){
+            case NOTIFICATION_TYPE.POST: {
+                let {user, post} = params;
+                let title = user.fullName + ' vừa đăng một bài viết mới.';
+                let body = post.content.length < 100 ? post.content : post.content.substr(0, 100) + '...';
+                let data = {postId: post.id};
+                await Notification.create({
+                    title,
+                    content: body,
+                    userId: user._id,
+                    data
+                });
+                await sendToMultipleDevice(listFcmToken, {title, body}, data);
+            }
+            case NOTIFICATION_TYPE.COMMENT:
+                break;
+            case NOTIFICATION_TYPE.REPLY:
+                break;
+            case NOTIFICATION_TYPE.LIKE:
+                break;
+            default:
+                break;
+        }
         done();
     }catch(e){
         logger.error(e);

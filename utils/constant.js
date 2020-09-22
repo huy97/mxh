@@ -43,7 +43,8 @@ const NOTIFICATION_TYPE = {
     DEFAULT: "DEFAULT",
     POST: "POST",
     COMMENT: "COMMENT",
-    REPLY: "REPLY"
+    REPLY: "REPLY",
+    LIKE: "LIKE"
 }
 
 module.exports = {

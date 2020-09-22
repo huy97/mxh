@@ -1,6 +1,5 @@
 const { baseResponse, logger, defaultStartLimit } = require("../../utils/helper");
-const { NOTIFICATION_TYPE } = require('../../utils/constant');
-const Notification = require("../../models/Notification");
+const Notification = require('../../models/Notification');
 
 const getList = async (req, res, next) => {
     try{
@@ -17,20 +16,6 @@ const getList = async (req, res, next) => {
     }
 }
 
-const createNotification = async (notificationType = NOTIFICATION_TYPE.DEFAULT, data = {}) => {
-    switch(notificationType){
-        case NOTIFICATION_TYPE.POST:
-            break;
-        case NOTIFICATION_TYPE.COMMENT:
-            break;
-        case NOTIFICATION_TYPE.REPLY:
-            break;
-        default:
-            break;
-    }
-}
-
 module.exports = {
-    getList,
-    createNotification
+    getList
 }

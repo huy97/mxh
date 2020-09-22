@@ -6,7 +6,7 @@ const MessageRead = require("../../models/MessageRead");
 const ConversationUser = require("../../models/ConversationUser");
 const Conversation = require("../../models/Conversation");
 const User = require("../../models/User");
-const {queue} = require("../../services/queue");
+const { queue } = require("../../services/queue");
 const slugify = require('slugify');
 const fs = require('fs');
 

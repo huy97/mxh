@@ -4,7 +4,7 @@ const ConversationUser = require("../../models/ConversationUser");
 const Conversation = require("../../models/Conversation");
 const User = require("../../models/User");
 const Message = require("../../models/Message");
-const {queue} = require("../../services/queue");
+const { queue } = require("../../services/queue");
 const { Types } = require("mongoose");
 const MessageRead = require("../../models/MessageRead");
 

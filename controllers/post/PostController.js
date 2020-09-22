@@ -5,6 +5,8 @@ const Post = require('../../models/Post');
 const PostMedia = require('../../models/PostMedia');
 const { baseResponse, logger, defaultStartLimit, getStaticUrl, projectUserField } = require("../../utils/helper");
 const { Types } = require('mongoose');
+const { NOTIFICATION_TYPE } = require('../../utils/constant');
+const { queue } = require('../../services/queue');
 
 const show = async (req, res, next) => {
     try{
@@ -224,7 +226,7 @@ const createPost = async (req, res, next) => {
         if(!errors.isEmpty()){
             baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin', errors.array());
         }
-        const post = await Post.create({
+        const postQuery = Post.create({
             userId: req.user.id,
             title,
             content
@@ -246,10 +248,8 @@ const createPost = async (req, res, next) => {
                 }
             });
         }
-        const query = [
-            PostMedia.create(listMedias)
-        ];
-        const [createdMedias] = await Promise.all(query);
+        const [post, createdMedias] = await Promise.all([postQuery, PostMedia.create(listMedias)]);
+        queue.create('notification', {type: NOTIFICATION_TYPE.POST, params: {user: req.user, post}}).save();
         baseResponse.json(res, 200, 'Thành công', {
             post: {
                 ...post.toJSON(),
