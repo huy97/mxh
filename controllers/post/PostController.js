@@ -226,7 +226,7 @@ const createPost = async (req, res, next) => {
         if(!errors.isEmpty()){
             baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin', errors.array());
         }
-        const postQuery = Post.create({
+        const post = await Post.create({
             userId: req.user.id,
             title,
             content
@@ -248,7 +248,7 @@ const createPost = async (req, res, next) => {
                 }
             });
         }
-        const [post, createdMedias] = await Promise.all([postQuery, PostMedia.create(listMedias)]);
+        const [createdMedias] = await Promise.all([PostMedia.create(listMedias)]);
         queue.create('notification', {type: NOTIFICATION_TYPE.POST, params: {user: req.user, post}}).save();
         baseResponse.json(res, 200, 'Thành công', {
             post: {

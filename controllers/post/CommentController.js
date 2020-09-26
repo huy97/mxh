@@ -3,7 +3,8 @@ const Post = require('../../models/Post');
 const PostComment = require('../../models/PostComment');
 const { validationResult } = require("express-validator");
 const { Types } = require("mongoose");
-const { COMMENT_TYPE } = require("../../utils/constant");
+const { COMMENT_TYPE, NOTIFICATION_TYPE } = require("../../utils/constant");
+const { queue } = require('../../services/queue');
 
 const getList = async (req, res, next) => {
     try{
@@ -170,7 +171,9 @@ const createComment = async (req, res, next) => {
             type: COMMENT_TYPE.COMMENT,
             content
         }), post.save()]);
-
+        if(post.userId != req.user.id){
+            queue.create('notification', {type: NOTIFICATION_TYPE.COMMENT, params: {user: req.user, post, comment}}).save();
+        }
         baseResponse.json(res, 200, 'Thành công', {
             comment
         });
@@ -205,7 +208,10 @@ const createReplyComment = async (req, res, next) => {
             type: COMMENT_TYPE.REPLY,
             parentId: comment.id,
             content
-        })], comment.save());
+        })]);
+        if(comment.userId != req.user.id){
+            queue.create('notification', {type: NOTIFICATION_TYPE.REPLY, params: {user: req.user, comment, reply}}).save();
+        }
         baseResponse.json(res, 200, 'Thành công', {
             reply
         });

@@ -82,25 +82,78 @@ queue.process('notification', async (job, done) => {
                 let {user, post} = params;
                 let title = user.fullName + ' vừa đăng một bài viết mới.';
                 let body = post.content.length < 100 ? post.content : post.content.substr(0, 100) + '...';
-                let data = {postId: post.id};
-                await Notification.create({
-                    title,
-                    content: body,
-                    userId: user._id,
-                    data
+                let data = {type, postId: post._id};
+                let receiveUsers = await User.find({_id: {$ne: user._id}});
+                let listFcmToken = receiveUsers.map((obj) => obj.fcmToken);
+                let notificationData = receiveUsers.map((obj) => {
+                    return {
+                        title,
+                        content: body,
+                        userId: obj._id,
+                        type, 
+                        data
+                    }
                 });
+                await Notification.create(notificationData);
                 await sendToMultipleDevice(listFcmToken, {title, body}, data);
+                done();
+                break;
             }
-            case NOTIFICATION_TYPE.COMMENT:
+            case NOTIFICATION_TYPE.COMMENT: {
+                let {user, post, comment} = params;
+                let title = user.fullName + ' vừa bình luận về bài viết của bạn.';
+                let data = {type, postId: post._id, commentId: comment._id};
+                let receiveUser = await User.findById(post.userId);
+                let notificationData = {
+                    title,
+                    content: "",
+                    userId: post.userId,
+                    type, 
+                    data
+                }
+                await Notification.create(notificationData);
+                await sendToMultipleDevice([receiveUser.fcmToken], {title, body: ""}, data);
+                done();
                 break;
-            case NOTIFICATION_TYPE.REPLY:
+            }
+            case NOTIFICATION_TYPE.REPLY: {
+                let {user, comment, reply} = params;
+                let title = user.fullName + ' vừa trả lời bình luận của bạn.';
+                let data = {type, postId: comment.postId, commentId: comment._id, replyId: reply._id};
+                console.log("object");
+                let receiveUser = await User.findById(comment.userId);
+                let notificationData = {
+                    title,
+                    content: "",
+                    userId: comment.userId,
+                    type, 
+                    data
+                }
+                await Notification.create(notificationData);
+                await sendToMultipleDevice([receiveUser.fcmToken], {title, body: ""}, data);
+                done();
                 break;
-            case NOTIFICATION_TYPE.LIKE:
+            }
+            case NOTIFICATION_TYPE.LIKE: {
+                let {user, post} = params;
+                let title = user.fullName + ' vừa thích bài viết của bạn.';
+                let data = {type, postId: post._id};
+                let receiveUser = await User.findById(post.userId);
+                let notificationData = {
+                    title,
+                    content: "",
+                    userId: post.userId,
+                    type, 
+                    data
+                }
+                await Notification.create(notificationData);
+                await sendToMultipleDevice([receiveUser.fcmToken], {title, body: ""}, data);
+                done();
                 break;
+            }
             default:
                 break;
         }
-        done();
     }catch(e){
         logger.error(e);
         done();

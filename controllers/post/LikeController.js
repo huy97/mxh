@@ -3,6 +3,8 @@ const Post = require('../../models/Post');
 const PostLike = require('../../models/PostLike');
 const { validationResult } = require("express-validator");
 const { Types } = require("mongoose");
+const { NOTIFICATION_TYPE } = require("../../utils/constant");
+const { queue } = require("../../services/queue");
 
 const getList = async (req, res, next) => {
     try{
@@ -81,6 +83,9 @@ const likePost = async (req, res, next) => {
                 userId: req.user.id,
                 emojiType
             });
+        }
+        if(post.userId != req.user.id){
+            queue.create('notification', {type: NOTIFICATION_TYPE.LIKE, params: {user: req.user, post}}).save();
         }
         baseResponse.json(res, 200, 'Thành công', {
             like
