@@ -82,7 +82,7 @@ queue.process('notification', async (job, done) => {
                 let {user, post} = params;
                 let title = user.fullName + ' vừa đăng một bài viết mới.';
                 let body = post.content.length < 100 ? post.content : post.content.substr(0, 100) + '...';
-                let data = {type, postId: post._id, user, createdAt: post.createdAt};
+                let data = {type, postId: post._id, user: JSON.stringify(user), createdAt: post.createdAt};
                 let receiveUsers = await User.find({_id: {$ne: user._id}});
                 let listFcmToken = receiveUsers.map((obj) => obj.fcmToken);
                 let notificationData = receiveUsers.map((obj) => {
