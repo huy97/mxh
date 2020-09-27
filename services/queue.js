@@ -102,7 +102,7 @@ queue.process('notification', async (job, done) => {
             case NOTIFICATION_TYPE.COMMENT: {
                 let {user, post, comment} = params;
                 let title = user.fullName + ' vừa bình luận về bài viết của bạn.';
-                let data = {type, postId: post._id, commentId: comment._id};
+                let data = {type, postId: post._id, commentId: comment._id, user: JSON.stringify(user), createdAt: comment.createdAt};
                 let receiveUser = await User.findById(post.userId);
                 let notificationData = {
                     title,
@@ -119,7 +119,7 @@ queue.process('notification', async (job, done) => {
             case NOTIFICATION_TYPE.REPLY: {
                 let {user, comment, reply} = params;
                 let title = user.fullName + ' vừa trả lời bình luận của bạn.';
-                let data = {type, postId: comment.postId, commentId: comment._id, replyId: reply._id};
+                let data = {type, postId: comment.postId, commentId: comment._id, replyId: reply._id, user: JSON.stringify(user), createdAt: reply.createdAt};
                 console.log("object");
                 let receiveUser = await User.findById(comment.userId);
                 let notificationData = {
@@ -137,7 +137,7 @@ queue.process('notification', async (job, done) => {
             case NOTIFICATION_TYPE.LIKE: {
                 let {user, post} = params;
                 let title = user.fullName + ' vừa thích bài viết của bạn.';
-                let data = {type, postId: post._id};
+                let data = {type, postId: post._id, user: JSON.stringify(user)};
                 let receiveUser = await User.findById(post.userId);
                 let notificationData = {
                     title,
