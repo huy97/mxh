@@ -25,7 +25,8 @@ queue.process('conversation', async (job, done) => {
         if(conversation.isGroup){
             body = `${sender.fullName}: ${body}`;
         }
-        await sendToMultipleDevice(listFcmToken, {title, body}, {type: NOTIFICATION_TYPE.MESSAGE, conversationId: conversation._id, isGroup: conversation.isGroup});
+        let userInfos = [...conversation.userInfos, sender];
+        await sendToMultipleDevice(listFcmToken, {title, body}, {type: NOTIFICATION_TYPE.MESSAGE, conversationId: conversation._id, isGroup: conversation.isGroup, userInfos: JSON.stringify(userInfos)});
         done();
     }catch(e){
         logger.error(e);
@@ -51,7 +52,8 @@ queue.process('message', async (job, done) => {
         if(conversation.isGroup){
             body = `${sender.fullName}: ${body}`;
         }
-        await sendToMultipleDevice(listFcmToken, {title, body}, {type: NOTIFICATION_TYPE.MESSAGE, conversationId: message.conversationId, isGroup: conversation.isGroup});
+        let userInfos = [...conversation.userInfos, sender];
+        await sendToMultipleDevice(listFcmToken, {title, body}, {type: NOTIFICATION_TYPE.MESSAGE, conversationId: message.conversationId, isGroup: conversation.isGroup, userInfos: JSON.stringify(userInfos)});
         done();
     }catch(e){
         logger.error(e);
