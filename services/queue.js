@@ -123,7 +123,6 @@ queue.process('notification', async (job, done) => {
                 let {user, comment, reply} = params;
                 let title = user.fullName + ' vừa trả lời bình luận của bạn.';
                 let data = {type, postId: comment.postId, commentId: comment._id, replyId: reply._id, user: JSON.stringify(user), createdAt: reply.createdAt};
-                console.log("object");
                 let receiveUser = await User.findById(comment.userId);
                 let notificationData = {
                     title,

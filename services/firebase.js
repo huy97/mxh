@@ -13,7 +13,10 @@ const sendToMultipleDevice = async (fcmTokens = [], notification, data) => {
   if(!listFcmTokens.length) return;
   const message = {
     data: data,
-    notification: notification,
+    notification: {
+      ...notification,
+      sound: "default"
+    },
     tokens: listFcmTokens,
   }
   logger.info("Send notification: " + JSON.stringify(fcmTokens));

@@ -150,6 +150,89 @@ const getListReply = async (req, res, next) => {
     }
 }
 
+const getCommentById = async (req, res, next) => {
+    try{
+        const {commentId} = req.params;
+        const match = {
+            _id: Types.ObjectId(commentId)
+        };
+        const comments = await PostComment.aggregate([
+            {
+                $match: match
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            {
+                $lookup: {
+                    from: "post_comments",
+                    let: {
+                        commentId: "$_id"
+                    },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: [ "$parentId",  "$$commentId" ] },
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            $sort: {_id: -1}
+                        },
+                        {
+                            $limit: 2
+                        },
+                        {
+                            $lookup: {
+                                from: "users",
+                                localField: "userId",
+                                foreignField: "_id",
+                                as: "user"
+                            }
+                        },
+                        {
+                            $unwind: "$user"
+                        },
+                        {
+                            $project: {
+                                ...projectUserField('user.')
+                            }
+                        }
+
+                    ],
+                    as: "replies"
+                }
+            },
+            {
+                $unwind: "$user"
+            },
+            {
+                $project: {
+                    ...projectUserField('user.')
+                }
+            }
+        ]);
+        if(!comments.length){
+            baseResponse.json(res, 404, "Bình luận không tồn tại.");
+            return;
+        }
+        baseResponse.json(res, 200, 'Thành công', {
+            comment: comments[0]
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
 const createComment = async (req, res, next) => {
     try{
         const {postId} = req.params;
@@ -201,14 +284,16 @@ const createReplyComment = async (req, res, next) => {
             baseResponse.json(res, 403, "Bình luận không được phép trả lời.");
             return;
         }
+        const post = await Post.findById(comment.postId);
         comment.reply += 1;
+        post.reply += 1;
         const [reply] = await Promise.all([PostComment.create({
             userId: req.user.id,
             postId: comment.postId,
             type: COMMENT_TYPE.REPLY,
             parentId: comment.id,
             content
-        })]);
+        }), post.save()]);
         if(comment.userId != req.user.id){
             queue.create('notification', {type: NOTIFICATION_TYPE.REPLY, params: {user: req.user, comment, reply}}).save();
         }
@@ -263,8 +348,10 @@ const deleteComment = async (req, res, next) => {
             return;
         }
         const commentQuery = [comment.delete(), PostComment.findByIdAndUpdate(comment.postId, {
-            $inc: {
+            $inc: comment.type === COMMENT_TYPE.COMMENT ? {
                 comment: -1
+            } : {
+                reply: -1
             }
         })];
         if(comment.type === COMMENT_TYPE.COMMENT){
@@ -285,6 +372,7 @@ const deleteComment = async (req, res, next) => {
 module.exports = {
     getList,
     getListReply,
+    getCommentById,
     createComment,
     createReplyComment,
     updateComment,

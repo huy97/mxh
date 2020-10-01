@@ -62,6 +62,7 @@ router.delete('/post/:postId', [], PostController.deletePost);
     //Post comment
     router.get('/post/:postId/comment', [], CommentController.getList);
     router.post('/post/:postId/comment', [CreateComment], CommentController.createComment);
+    router.get('/comment/:commentId', [], CommentController.getCommentById);
     router.get('/comment/:commentId/reply', [], CommentController.getListReply);
     router.post('/comment/:commentId/reply', [CreateComment], CommentController.createReplyComment);
     router.put('/comment/:commentId', [CreateComment], CommentController.updateComment);

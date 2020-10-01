@@ -11,11 +11,6 @@ const { queue } = require('../../services/queue');
 const show = async (req, res, next) => {
     try{
         const {postId} = req.params;
-        const post = await Post.findById(postId);
-        if(!post){
-            baseResponse.json(res, 404, "Bài viết không tồn tại.");
-            return;
-        }
         const postDetail = await Post.aggregate([
             {
                 $match: {_id: Types.ObjectId(postId)}
@@ -101,8 +96,12 @@ const show = async (req, res, next) => {
                 }
             }
         ]);
+        if(!postDetail.length){
+            baseResponse.json(res, 404, "Bài viết không tồn tại.");
+            return;
+        }
         baseResponse.json(res, 200, 'Thành công', {
-            post: postDetail
+            post: postDetail[0]
         });
     }catch(e){
         logger.error(e);
