@@ -16,12 +16,11 @@ const sendToMultipleDevice = async (fcmTokens = [], notification, data) => {
     notification: {
       ...notification,
       sound: "default"
-    },
-    tokens: listFcmTokens,
+    }
   }
   logger.info("Send notification: " + JSON.stringify(fcmTokens));
   logger.info("Message: " + JSON.stringify(message));
-  return admin.messaging().sendMulticast(message);
+  return admin.messaging().sendToDevice(listFcmTokens, message);
 }
 
 module.exports = {
