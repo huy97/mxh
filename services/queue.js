@@ -137,9 +137,9 @@ queue.process('notification', async (job, done) => {
                 break;
             }
             case NOTIFICATION_TYPE.LIKE: {
-                let {user, post} = params;
+                let {user, post, like} = params;
                 let title = user.fullName + ' vừa thích bài viết của bạn.';
-                let data = {type, postId: post._id, user: JSON.stringify(user)};
+                let data = {type, postId: post._id, user: JSON.stringify(user), createdAt: like.createdAt};
                 let receiveUser = await User.findById(post.userId);
                 let notificationData = {
                     title,
