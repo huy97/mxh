@@ -95,7 +95,7 @@ const updateUserInfo = async (req, res, next) => {
         const updateField = {
             fullName: fullName ? fullName : currentUser.fullName,
             email: email ? email : currentUser.email,
-            notification: notification ? notification : currentUser.notification,
+            notification: notification !== null || notification !== undefined ? notification : currentUser.notification,
             gender: gender ? gender : currentUser.gender,
             birthday: birthday ? birthday : currentUser.birthday,
             address: {
