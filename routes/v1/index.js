@@ -44,7 +44,7 @@ router.get('/user/find', [], UserController.getList);
 router.get('/user/find-custom', [], UserController.getListCustom);
 router.get('/user/:userId', [], UserController.getUserInfo);
 router.put('/user/:userId', [UpdateUser], UserController.updateUserInfo);
-router.put('/user/:userId/avatar', [], UserController.updateUserAvatar);
+router.post('/user/:userId/avatar', [], UserController.updateUserAvatar);
 router.put('/user/:userId/update-fcmtoken', [], UserController.updateFCMToken);
 router.get('/user/:userId/post', [], PostController.getList);
 //End
