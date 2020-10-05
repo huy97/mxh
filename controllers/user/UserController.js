@@ -125,7 +125,7 @@ const updateUserAvatar = async (req, res, next) => {
             baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
             return;
         }
-        const form = formidable({maxFileSize: 1024 * 1024});
+        const form = formidable();
         form.parse(req, async (err, fields, files) => {
             if(err) throw Error();
             if(files.avatar && files.avatar.size && getFileType(files.avatar) !== MEDIA_TYPE.IMAGE){
@@ -149,15 +149,15 @@ const updateUserAvatar = async (req, res, next) => {
                 return;
             }
             form.uploadDir = "static/images";
-            let avatarUrl = getStaticUrl(DEFAULT_AVATAR);
-            let coverUrl = getStaticUrl(DEFAULT_COVER);
+            let avatarUrl = req.user.avatar ? req.user.avatar : getStaticUrl(DEFAULT_AVATAR);
+            let coverUrl = req.user.cover ? req.user.cover : getStaticUrl(DEFAULT_COVER);
             if(files.avatar && files.avatar.size){
                 const newPath = form.uploadDir + '/avatar/' + userId + '_' + slugify(files.avatar.name);
                 fs.renameSync(files.avatar.path, newPath);
                 avatarUrl = getStaticUrl(newPath);
             }
             if(files.cover && files.cover.size){
-                const newPath = form.uploadDir + '/cover/' + userId + '_' + slugify(files.avatar.name);
+                const newPath = form.uploadDir + '/cover/' + userId + '_' + slugify(files.cover.name);
                 fs.renameSync(files.cover.path, newPath);
                 coverUrl = getStaticUrl(newPath);
             }
