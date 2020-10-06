@@ -86,7 +86,7 @@ queue.process('notification', async (job, done) => {
                 let title = user.fullName + ' vừa đăng một bài viết mới.';
                 let body = post.content.length < 100 ? post.content : post.content.substr(0, 100) + '...';
                 let data = {type, postId: post._id, user: JSON.stringify(user), createdAt: post.createdAt};
-                let receiveUsers = await User.find({_id: {$ne: user._id}});
+                let receiveUsers = await User.find({_id: {$ne: user._id}, notification: true});
                 let listFcmToken = receiveUsers.map((obj) => obj.fcmToken);
                 let notificationData = receiveUsers.map((obj) => {
                     return {
@@ -105,8 +105,12 @@ queue.process('notification', async (job, done) => {
             case NOTIFICATION_TYPE.COMMENT: {
                 let {user, post, comment} = params;
                 let title = user.fullName + ' vừa bình luận về bài viết của bạn.';
-                let data = {type, postId: post._id, commentId: comment._id, user: JSON.stringify(user), createdAt: comment.createdAt};
+                let data = {type, postId: post._id, commentId: comment._id, user: JSON.stringify(user), createdAt: post.createdAt};
                 let receiveUser = await User.findById(post.userId);
+                if(!receiveUser || !receiveUser.notification) {
+                    done();
+                    return;
+                }
                 let notificationData = {
                     title,
                     content: "",
@@ -120,10 +124,14 @@ queue.process('notification', async (job, done) => {
                 break;
             }
             case NOTIFICATION_TYPE.REPLY: {
-                let {user, comment, reply} = params;
+                let {user, comment, reply, post} = params;
                 let title = user.fullName + ' vừa trả lời bình luận của bạn.';
-                let data = {type, postId: comment.postId, commentId: comment._id, replyId: reply._id, user: JSON.stringify(user), createdAt: reply.createdAt};
+                let data = {type, postId: comment.postId, commentId: comment._id, replyId: reply._id, user: JSON.stringify(user), createdAt: post.createdAt};
                 let receiveUser = await User.findById(comment.userId);
+                if(!receiveUser || !receiveUser.notification) {
+                    done();
+                    return;
+                }
                 let notificationData = {
                     title,
                     content: "",
@@ -139,8 +147,12 @@ queue.process('notification', async (job, done) => {
             case NOTIFICATION_TYPE.LIKE: {
                 let {user, post, like} = params;
                 let title = user.fullName + ' vừa thích bài viết của bạn.';
-                let data = {type, postId: post._id, user: JSON.stringify(user), createdAt: like.createdAt};
+                let data = {type, postId: post._id, user: JSON.stringify(user), createdAt: post.createdAt};
                 let receiveUser = await User.findById(post.userId);
+                if(!receiveUser || !receiveUser.notification) {
+                    done();
+                    return;
+                }
                 let notificationData = {
                     title,
                     content: "",

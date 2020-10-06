@@ -295,7 +295,7 @@ const createReplyComment = async (req, res, next) => {
             content
         }), post.save()]);
         if(comment.userId != req.user.id){
-            queue.create('notification', {type: NOTIFICATION_TYPE.REPLY, params: {user: req.user, comment, reply}}).save();
+            queue.create('notification', {type: NOTIFICATION_TYPE.REPLY, params: {user: req.user, comment, reply, post}}).save();
         }
         baseResponse.json(res, 200, 'Thành công', {
             reply
