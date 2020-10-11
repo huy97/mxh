@@ -85,7 +85,7 @@ const createMessage = async (req, res, next) => {
             conversation: {
                 ...conversation.toJSON(),
                 users: conversationUsers,
-                userInfos: listUsers.filter((obj) => obj.id !== req.user.id),
+                userInfos: listUsers,
                 lastMessage: createdMessage
             },
             sender: req.user,
