@@ -8,7 +8,7 @@ const uploadImage = async (req, res, next) => {
         const form = formidable({maxFileSize: 1024 * 1024, multiples: true, uploadDir: os.tmpdir()});
         form.parse(req, (err, fields, files) => {
             if(err) throw Error();
-            const listFiles = Array.isArray(fields.file) ? files.file : [files.file];
+            const listFiles = Array.isArray(files.file) ? files.file : [files.file];
             if(!listFiles.length){
                 baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', [
                     {
