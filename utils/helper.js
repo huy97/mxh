@@ -51,7 +51,7 @@ const baseResponse = {
 const getFileType = file => {
     try{
         if(file.type.match('image.*'))
-        return MEDIA_TYPE.IMAGE;
+            return MEDIA_TYPE.IMAGE;
         if(file.type.match('video.*'))
             return MEDIA_TYPE.VIDEO;
         if(file.type.match('audio.*'))

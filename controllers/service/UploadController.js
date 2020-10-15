@@ -1,15 +1,15 @@
-const { baseResponse, getFileType } = require("../../utils/helper");
+const { baseResponse, getFileType, logger } = require("../../utils/helper");
 const os = require('os');
 const formidable = require('formidable');
-const { isArray } = require("util");
 const { MEDIA_TYPE } = require("../../utils/constant");
 
 const uploadImage = async (req, res, next) => {
     try{
-        const form = formidable({maxFileSize: 1024 * 1024, multiples: true, uploadDir: os.tmpdir()});
-        form.parse(req, async (err, fields, files) => {
+        const form = formidable({multiples: true, uploadDir: os.tmpdir()});
+        form.parse(req, (err, fields, files) => {
             if(err) throw Error();
-            const listFiles = isArray(fields.file) ? files.file : [files.file];
+            const listFiles = Array.isArray(files.file) ? files.file : [files.file];
+            logger.info(JSON.stringify(listFiles));
             if(!listFiles.length){
                 baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', [
                     {

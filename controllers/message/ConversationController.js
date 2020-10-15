@@ -219,8 +219,8 @@ const createConversation = async (req, res, next) => {
                 isManager: userId === req.user.id
             }
         });
-        uniqueUsers.pop();
         const queryList = [User.find({_id: {$in: uniqueUsers}}, {...projectUserField()}), ConversationUser.create(conversationUsers)];
+        uniqueUsers.pop();
         if(!isEmpty(message)){
             queryList.push(Message.create({
                 conversationId: conversation.id,

@@ -264,7 +264,7 @@ const createPost = async (req, res, next) => {
 const updatePost = async (req, res, next) => {
     try{
         const {postId} = req.params;
-        const {title, content, medias} = req.body;
+        const {title, content, medias = []} = req.body;
         const post = await Post.findById(postId);
         if(!post){
             baseResponse.json(res, 404, "Bài viết không tồn tại.");

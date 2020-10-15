@@ -6,7 +6,7 @@ const messageSchema = new Schema({
     conversationId: {type: mongoose.Types.ObjectId, required: true},
     from: {type: Object, required: true},
     to: {type: Array, required: true},
-    message: {type: String, default: "", required: true, trim: true},
+    message: {type: String, default: "", trim: true},
     status: {type: String, default: MESSAGE_STATUS.SENT},
     attachments: {type: Array}
 }, {

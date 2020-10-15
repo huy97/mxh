@@ -85,7 +85,7 @@ const likePost = async (req, res, next) => {
             });
         }
         if(post.userId != req.user.id){
-            queue.create('notification', {type: NOTIFICATION_TYPE.LIKE, params: {user: req.user, post}}).save();
+            queue.create('notification', {type: NOTIFICATION_TYPE.LIKE, params: {user: req.user, post}, like}).save();
         }
         baseResponse.json(res, 200, 'Thành công', {
             like

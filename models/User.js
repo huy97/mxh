@@ -11,7 +11,7 @@ const userSchema = new Schema({
     refreshToken: {type: String, default: ""},
     socketId: {type: String, default: ""},
     fcmToken: {type: String, default: ""},
-    avatar: {type: String, default: getStaticUrl(DEFAULT_AVATAR)},
+    avatar: {type: String, default: ""},
     cover: {type: String, default: getStaticUrl(DEFAULT_COVER)},
     address: {
         province:  {type: Object},
