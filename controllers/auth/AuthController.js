@@ -5,12 +5,13 @@ const jwt = require("jsonwebtoken");
 const fs = require('fs');
 const request = require('request');
 const slugify = require("slugify");
+const bcryptjs = require('bcryptjs');
 
 const login = async (req, res, next) => {
     try{
         const {accessToken} = req.body;
         if(!accessToken){
-            baseResponse.error(res, '422', 'Vui lòng nhập đủ thông tin.', [
+            baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', [
                 {
                     "location": "body",
                     "param": "accessToken",
@@ -59,11 +60,40 @@ const login = async (req, res, next) => {
     }
 }
 
+const loginWithPassword = async (req, res, next) => {
+    try{
+        const {username, password} = req.body;
+        const currentUser = username ? await User.findOne({username}) : null;
+        if(!username || !currentUser){
+            baseResponse.error(res, 422, 'Tài khoản không tồn tại.');
+            return;
+        }
+        const verifyPassword = bcryptjs.compareSync(password, currentUser.password);
+        if(!verifyPassword){
+            baseResponse.error(res, 422, 'Tài khoản hoặc mật khẩu không chính xác.');
+            return;
+        }
+        const tokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
+        const refreshTokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 60);
+        const [token, refreshToken] = await Promise.all([
+            jwt.sign({uid: user.id,  exp: tokenExpiredAt}, global.privateKey),
+            jwt.sign({uid: user.id,  exp: refreshTokenExpiredAt}, global.privateKey)
+        ]);
+        baseResponse.success(res, 200, 'Đăng nhập thành công.', {
+            accessToken: token,
+            refreshToken
+        });
+    }catch(error){
+        logger.error(error);
+        baseResponse.error(res);
+    }
+}
+
 const refreshToken = async (req, res, next) => {
     try{
         const {refreshToken} = req.body;
         if(!refreshToken){
-            baseResponse.error(res, '422', 'Vui lòng nhập đủ thông tin.', [
+            baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin.', [
                 {
                     "location": "body",
                     "param": "refreshToken",
@@ -103,5 +133,6 @@ const refreshToken = async (req, res, next) => {
 
 module.exports = {
     login,
+    loginWithPassword,
     refreshToken
 }

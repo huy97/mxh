@@ -22,6 +22,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
 
 router.post('/login', [], AuthController.login);
+router.post('/manager/login', [], AuthController.loginWithPassword);
 router.post('/refresh-token', [], AuthController.refreshToken);
 
 //Service

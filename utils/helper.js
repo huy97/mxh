@@ -72,6 +72,7 @@ const getStaticUrl = (url = "") => {
 
 const projectUserField = (prefix = "") => {
     let object = {};
+    object[`${prefix}username`] = 0;
     object[`${prefix}address`] = 0;
     object[`${prefix}accessToken`] = 0;
     object[`${prefix}refreshToken`] = 0;

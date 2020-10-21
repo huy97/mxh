@@ -7,6 +7,8 @@ const userSchema = new Schema({
     fullName: {type: String, default: "", required: true},
     uid: {type: String, default: "", unique: true},
     email: {type: String, default: ""},
+    username: {type: String, default: ""},
+    password: {type: String, default: ""},
     accessToken: {type: String, default: ""},
     refreshToken: {type: String, default: ""},
     socketId: {type: String, default: ""},
