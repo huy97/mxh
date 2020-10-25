@@ -81,7 +81,8 @@ const loginWithPassword = async (req, res, next) => {
         ]);
         baseResponse.success(res, 200, 'Đăng nhập thành công.', {
             accessToken: token,
-            refreshToken
+            refreshToken,
+            user
         });
     }catch(error){
         logger.error(error);
