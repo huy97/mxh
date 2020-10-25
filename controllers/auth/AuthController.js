@@ -79,7 +79,7 @@ const loginWithPassword = async (req, res, next) => {
             jwt.sign({uid: user.id,  exp: tokenExpiredAt}, global.privateKey),
             jwt.sign({uid: user.id,  exp: refreshTokenExpiredAt}, global.privateKey)
         ]);
-        baseResponse.success(res, 200, 'Đăng nhập thành công.', {
+        baseResponse.success(res, 200, 'Đăng nhập thành công.', null, {
             accessToken: token,
             refreshToken,
             user
