@@ -63,12 +63,12 @@ const login = async (req, res, next) => {
 const loginWithPassword = async (req, res, next) => {
     try{
         const {username, password} = req.body;
-        const currentUser = username ? await User.findOne({username}) : null;
-        if(!username || !currentUser){
+        const user = username ? await User.findOne({username}) : null;
+        if(!username || !user){
             baseResponse.error(res, 422, 'Tài khoản không tồn tại.');
             return;
         }
-        const verifyPassword = bcryptjs.compareSync(password, currentUser.password);
+        const verifyPassword = bcryptjs.compareSync(password, user.password);
         if(!verifyPassword){
             baseResponse.error(res, 422, 'Tài khoản hoặc mật khẩu không chính xác.');
             return;

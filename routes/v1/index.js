@@ -29,22 +29,18 @@ router.post('/refresh-token', [], AuthController.refreshToken);
 router.get('/provinces', [], ServiceController.getProvinces);
 router.get('/provinces/:provinceId/districts', [], ServiceController.getDistricts);
 router.get('/provinces/:provinceId/districts/:districtId/subdistricts', [], ServiceController.getSubDistricts);
-router.get('/fake-login/:id', [], async (req, res, next) => {
-    const tokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
-    const newToken = await jwt.sign({uid: req.params.id,  exp: tokenExpiredAt}, global.privateKey);
-    const user = await User.findByIdAndUpdate(req.params.id, {accessToken: newToken}, {new: true});
-    res.send(user.toJSON());
-});
 
 //Authenticated here
 router.use(Authenticate);
 
 //User
 router.get('/user', [], UserController.me);
+router.post('/user', [], UserController.createUser);
 router.get('/user/find', [], UserController.getList);
 router.get('/user/find-custom', [], UserController.getListCustom);
 router.get('/user/:userId', [], UserController.getUserInfo);
 router.put('/user/:userId', [UpdateUser], UserController.updateUserInfo);
+router.delete('/user/:userId', [], UserController.deleteUser);
 router.post('/user/:userId/avatar', [], UserController.updateUserAvatar);
 router.put('/user/:userId/update-fcmtoken', [], UserController.updateFCMToken);
 router.get('/user/:userId/post', [], PostController.getList);

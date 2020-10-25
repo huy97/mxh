@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { DEFAULT_AVATAR, DEFAULT_COVER, GENDER } = require('../utils/constant');
+const { DEFAULT_COVER, GENDER } = require('../utils/constant');
 const { getStaticUrl } = require('../utils/helper');
 const Schema = mongoose.Schema;
 
@@ -7,7 +7,7 @@ const userSchema = new Schema({
     fullName: {type: String, default: "", required: true},
     uid: {type: String, default: "", unique: true},
     email: {type: String, default: ""},
-    username: {type: String, default: ""},
+    username: {type: String, default: "", unique: true},
     password: {type: String, default: ""},
     accessToken: {type: String, default: ""},
     refreshToken: {type: String, default: ""},

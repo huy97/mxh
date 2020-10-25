@@ -48,6 +48,14 @@ const NOTIFICATION_TYPE = {
     MESSAGE: "MESSAGE",
 }
 
+const PERMISSION_CODE = {
+    READ: "READ",
+    CREATE: "CREATE",
+    UPDATE: "UPDATE",
+    DELETE: "DELETE",
+    MANAGER: "MANAGER"
+};
+
 module.exports = {
     SALT_ROUND,
     DEFAULT_AVATAR,
@@ -58,5 +66,6 @@ module.exports = {
     MESSAGE_STATUS,
     MESSAGE_EVENT,
     GENDER,
-    NOTIFICATION_TYPE
+    NOTIFICATION_TYPE,
+    PERMISSION_CODE
 };

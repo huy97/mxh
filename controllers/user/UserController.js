@@ -5,7 +5,10 @@ const { validationResult } = require("express-validator");
 const { baseResponse, getFileType, getStaticUrl, logger, projectUserField, defaultStartLimit, isEmpty } = require("../../utils/helper");
 const { set, get } = require("../../services/redis");
 const User = require('../../models/User');
-const { MEDIA_TYPE, DEFAULT_COVER, DEFAULT_AVATAR } = require('../../utils/constant');
+const UserRole = require('../../models/UserRole');
+const { MEDIA_TYPE, DEFAULT_COVER, DEFAULT_AVATAR, PERMISSION_CODE } = require('../../utils/constant');
+const jwt = require('jsonwebtoken');
+const bcryptjs = require('bcryptjs');
 
 const me = async (req, res, next) => {
     baseResponse.json(res, 200, 'Thành công.', {
@@ -201,6 +204,63 @@ const updateFCMToken = async (req, res, next) => {
     }
 }
 
+const createUser = async (req, res, next) => {
+    try{
+        const {fullName, username, password} = req.body;
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return baseResponse.error(res, 422, 'Vui lòng nhập đủ thông tin', errors.array());
+        }
+        const passwordHash = await bcryptjs.hashSync(password, 10);
+        let userObj = {
+            fullName,
+            username,
+            password: passwordHash,
+            uid: username
+        }
+        let defaultRoleId = 1;
+        const user = await User.create(userObj);
+        const tokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
+        const refreshTokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 60);
+        const [token, refreshToken] = await Promise.all([
+            jwt.sign({uid: user.id,  exp: tokenExpiredAt}, global.privateKey),
+            jwt.sign({uid: user.id,  exp: refreshTokenExpiredAt}, global.privateKey)
+        ]);
+        user.accessToken = token;
+        user.refreshToken = refreshToken;
+        await user.save();
+        await UserRole.create({
+            userId: user.id,
+            roleId: defaultRoleId
+        });
+        return baseResponse.json(res, 200, 'Thành công', {
+            user
+        });
+    }catch (e) {
+        logger.error(e);
+        return baseResponse.error(res);
+    }
+};
+
+const deleteUser = async (req, res, next) => {
+    const {userId} = req.params;
+    try{
+        if(userId === req.user.id){
+            return baseResponse.error(res, 422, 'Bạn không thể xoá chính bạn.');
+        }
+        let user = await User.findById(userId);
+        if(!user){
+            return baseResponse.error(res, 422, 'User không tồn tại.');
+        }
+        await user.remove();
+        return baseResponse.success(res, 200, 'Thành công', {
+            user
+        });
+    }catch(e){
+        return baseResponse.error(res);
+    }
+};
+
 module.exports = {
     me,
     getList,
@@ -208,5 +268,7 @@ module.exports = {
     getUserInfo,
     updateUserInfo,
     updateUserAvatar,
-    updateFCMToken
+    updateFCMToken,
+    createUser,
+    deleteUser
 }
