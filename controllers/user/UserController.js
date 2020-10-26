@@ -69,7 +69,38 @@ const getListCustom = async (req, res, next) => {
                 $search: keyword
             }
         }
-        const queryUser = User.find(find, {_id: 1, fullName: 1, avatar: 1, online: 1}).skip(start).limit(limit);
+        const queryUser = User.aggregate([
+            {
+                $match: find
+            },
+            {
+                $skip: start
+            },
+            {
+                $limit: limit
+            },
+            {
+              $sort: {
+                  createdAt: -1
+              }
+            },
+            {
+                $lookup: {
+                    from: 'user_roles',
+                    localField: "_id",
+                    foreignField: "userId",
+                    as: 'roles'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'roles',
+                    localField: "roles.roleId",
+                    foreignField: "roleId",
+                    as: 'roles'
+                }
+            }
+        ]);
         const queryTotal = User.countDocuments(find);
         const [users, total] = await Promise.all([queryUser, queryTotal]);
         baseResponse.success(res, 200, 'Thành công', users, {
