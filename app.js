@@ -12,7 +12,7 @@ const app = express();
 const v1Router = require('./routes/v1');
 const v2Router = require('./routes/v2');
 const { baseResponse, logRequest } = require('./utils/helper');
-app.use(cors({credentials: true, origin: ['http://localhost:3001', 'http://192.168.2.8:3001']}));
+app.use(cors({credentials: true, origin: ['*']}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
