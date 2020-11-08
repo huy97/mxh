@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const UserAdmin = require('../models/UserAdmin');
+const userRoleModel = require('../models/UserRole');
 const {baseResponse, logger} = require('../utils/helper');
 
-const Authenticated = async (req, res, next) => {
+const AuthenticatedAdmin = async (req, res, next) => {
     try{
         const {token} = req.headers || req.cookies.token;
         if(!token){
@@ -10,17 +11,34 @@ const Authenticated = async (req, res, next) => {
         } else {
             try{
                 const verify = await jwt.verify(token, global.privateKey);
-                const user = await User.findOne({_id: verify.uid, accessToken: token}, {password: 0});
+                const user = await UserAdmin.findOne({_id: verify.uid, accessToken: token}, {password: 0});
                 if(!user){
                     baseResponse.error(res, 401, 'Uỷ quyền thất bại.');
                     return;
                 }
-                if(user.isLock) {
-                    baseResponse.error(res, 422, 'Tài khoản của bạn đã bị khóa');
-                    return;
-                }
-                user.online = true;
+                const userRole = await userRoleModel.aggregate([
+                    {
+                        $match: {
+                            userId: user._id
+                        }
+                    },
+                    {
+                        $project: {
+                            roleId: 1,
+                            roles: 1
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: 'useradminroles',
+                            localField: 'roleId',
+                            foreignField: 'roleId',
+                            as: 'useradminroles'
+                        }
+                    }
+                ]);
                 req.user = user;
+                req.roles = userRole;
                 next();
             }catch (e) {
                 if(e instanceof jwt.TokenExpiredError){
@@ -39,4 +57,4 @@ const Authenticated = async (req, res, next) => {
     }
 };
 
-module.exports = Authenticated;
+module.exports = AuthenticatedAdmin;

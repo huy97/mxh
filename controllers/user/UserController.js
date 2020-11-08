@@ -1,5 +1,6 @@
 const formidable = require('formidable');
 const slugify = require('slugify');
+const { hasPermission } = require("../../middleware/checkPermission");
 const fs = require('fs');
 const { validationResult } = require("express-validator");
 const { baseResponse, getFileType, getStaticUrl, logger, projectUserField, defaultStartLimit, isEmpty } = require("../../utils/helper");
@@ -9,6 +10,7 @@ const UserRole = require('../../models/UserRole');
 const { MEDIA_TYPE, DEFAULT_COVER, DEFAULT_AVATAR, PERMISSION_CODE } = require('../../utils/constant');
 const jwt = require('jsonwebtoken');
 const bcryptjs = require('bcryptjs');
+const { base } = require('../../models/UserRole');
 
 const me = async (req, res, next) => {
     baseResponse.json(res, 200, 'Thành công.', {
@@ -292,6 +294,47 @@ const deleteUser = async (req, res, next) => {
     }
 };
 
+const getListUser = async (req, res, next) => {
+    try{
+        if(hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.READ], req.roles)){
+            return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
+        }
+        const {keyword = ""} = req.query;
+        const {start, limit} = defaultStartLimit(req);
+        const find = keyword!=="" ? {
+            $text : {$search: keyword}
+        }  : {};
+        const queryUser = User.find(find).skip(start).limit(limit);
+        const queryTotal = User.countDocuments(find);
+        const [users, total] = await Promise.all([queryUser, queryTotal]);
+        baseResponse.success(res, 200, 'Thành công', users, {
+            total
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
+const toogleLock = async (req, res, next) => {
+    try{
+        if(hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.UPDATE], req.roles)){
+            return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
+        }
+        const {id, setLock} = req.body;
+        const queryUser = await User.findById({_id: id});
+        if(!queryUser) {
+            return baseResponse.error(res, 422, 'Không tìm thấy user');
+        }
+        queryUser.isLock = setLock;
+        queryUser.save();
+        baseResponse.success(res, 200, 'Thành công', queryUser);
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
 module.exports = {
     me,
     getList,
@@ -301,5 +344,7 @@ module.exports = {
     updateUserAvatar,
     updateFCMToken,
     createUser,
-    deleteUser
+    deleteUser,
+    getListUser,
+    toogleLock
 }

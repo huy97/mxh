@@ -56,6 +56,11 @@ const PERMISSION_CODE = {
     MANAGER: "MANAGER"
 };
 
+const OS = {
+    ANDROID: 1,
+    IOS: 2,
+}
+
 module.exports = {
     SALT_ROUND,
     DEFAULT_AVATAR,
@@ -67,5 +72,6 @@ module.exports = {
     MESSAGE_EVENT,
     GENDER,
     NOTIFICATION_TYPE,
-    PERMISSION_CODE
+    PERMISSION_CODE,
+    OS
 };

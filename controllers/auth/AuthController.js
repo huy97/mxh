@@ -30,6 +30,9 @@ const login = async (req, res, next) => {
                 fullName: name
             });
         }
+        if(user.isLock) {
+            return baseResponse.error(res, 422, 'Tài khoản của bạn đã bị khóa');
+        }
         const tokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
         const refreshTokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 60);
         const [token, refreshToken] = await Promise.all([

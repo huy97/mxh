@@ -335,10 +335,120 @@ const deletePost = async (req, res, next) => {
     }
 }
 
+const getListByAdmin = async (req, res, next) => {
+    try{
+        const {userId} = req.params;
+        const {start, limit} = defaultStartLimit(req);
+        const match = {};
+        if(userId && Types.ObjectId(userId)){
+            match.userId = Types.ObjectId(userId);
+        }
+        const postQuery = Post.aggregate([
+            {
+                $match: match
+            },
+            {
+                $sort: {
+                    createAt: -1
+                }
+            },
+            {
+                $skip: start
+            },
+            {
+                $limit: limit
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            {
+                $unwind: "$user"
+            },
+            {
+                $lookup: {
+                    from: "post_likes",
+                    let: {
+                        postId: "$_id"
+                    },
+                    pipeline: [{
+                        "$match": {
+                            $expr: {
+                                $and: [
+                                    { $eq: [ "$postId",  "$$postId" ] },
+                                ]
+                            },
+                            "userId": req.user._id
+                        }
+                    }],
+                    as: "likeInfo"
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$likeInfo",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: "post_likes",
+                    let: {
+                        postId: "$_id"
+                    },
+                    pipeline: [
+                        {
+                            "$match": {
+                                $expr: {
+                                    $and: [
+                                        { $eq: [ "$postId",  "$$postId" ] },
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$emojiType",
+                                count: {$sum: 1}
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+                                emojiType: "$_id",
+                                total: "$count"
+                            }
+                        }
+                    ],
+                    as: "likeStats"
+                }
+            },
+            {
+                $project: {
+                    ...projectUserField('user.')
+                }
+            }
+        ]);
+        const totalQuery = Post.countDocuments(match);
+        const [post, total] = await Promise.all([postQuery, totalQuery]);
+        baseResponse.success(res, 200, 'Thành công', post, {
+            total
+        });
+    }catch(e){
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
 module.exports = {
     show,
     getList,
     createPost,
     updatePost,
-    deletePost
+    deletePost,
+    getListByAdmin
 }

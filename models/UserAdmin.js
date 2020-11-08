@@ -5,16 +5,11 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
     fullName: {type: String, default: "", required: true},
-    uid: {type: String, default: "", unique: true},
-    email: {type: String, default: ""},
     username: {type: String, default: "", unique: true},
     password: {type: String, default: ""},
     accessToken: {type: String, default: ""},
-    refreshToken: {type: String, default: ""},
-    socketId: {type: String, default: ""},
     fcmToken: {type: String, default: ""},
     avatar: {type: String, default: ""},
-    cover: {type: String, default: getStaticUrl(DEFAULT_COVER)},
     address: {
         province:  {type: Object},
         district:  {type: Object},
@@ -23,9 +18,6 @@ const userSchema = new Schema({
     },
     gender: {type: Number, default: GENDER.UNKNOWN},
     birthday: {type: Number, default: null},
-    notification: {type: Boolean, default: true},
-    online: {type: Boolean, default: false},
-    isLock: {type: Boolean, default: false}
 }, {
     timestamps: true
 });
@@ -43,4 +35,4 @@ userSchema.index({
     },
 });
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.model('UserAdmin', userSchema);
