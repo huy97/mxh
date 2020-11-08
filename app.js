@@ -12,7 +12,7 @@ const app = express();
 const v1Router = require('./routes/v1');
 const v2Router = require('./routes/v2');
 const { baseResponse, logRequest } = require('./utils/helper');
-app.use(cors({credentials: true, origin: ['https://api.mabo79.vn']}));
+app.use(cors({credentials: true, origin: ['https://cp.mabo79.vn']}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.json());
