@@ -341,14 +341,7 @@ const getListByAdmin = async (req, res, next) => {
     try{
         const {userId} = req.params;
         const {start, limit} = defaultStartLimit(req);
-        const match = {};
-        if(userId && Types.ObjectId(userId)){
-            match.userId = Types.ObjectId(userId);
-        }
         const postQuery = Post.aggregate([
-            {
-                $match: match
-            },
             {
                 $sort: {
                     createAt: -1
@@ -435,7 +428,7 @@ const getListByAdmin = async (req, res, next) => {
                 }
             }
         ]);
-        const totalQuery = Post.countDocuments(match);
+        const totalQuery = Post.countDocuments();
         const [post, total] = await Promise.all([postQuery, totalQuery]);
         baseResponse.success(res, 200, 'Thành công', post, {
             total
