@@ -15,7 +15,7 @@ const adminLogin = async (req, res, next) => {
       baseResponse.error(res, 422, 'Vui lòng nhập đầy đủ các trường');
       return;
     }
-    const adminUser = username ? await UserAdmin.findOne({username}) : null;
+    const adminUser = await UserAdmin.findOne({username});
     if(!adminUser) {
       baseResponse.error(res, 422, 'Tài khoản không tồn tại.');
       return;
@@ -40,6 +40,21 @@ const adminLogin = async (req, res, next) => {
     return baseResponse.error(res);
   }
 };
+
+const adminLogout = async (req, res, next) => {
+  try{
+    let user = await UserAdmin.findOne({_id: req.user._id});
+    if(user) {
+      user.accessToken = '';
+      user.save();
+    }
+    baseResponse.success(res, 200, 'Đăng xuất thành công.');
+  }catch(e) {
+    console.log(e);
+    logger.error(e);
+    return baseResponse.error(res);
+  }
+}
 
 const createAdmin = async (req, res, next) => {
   try {
@@ -177,6 +192,7 @@ const updateRole = async (req, res, next) => {
 
 module.exports = {
   adminLogin,
+  adminLogout,
   createAdmin,
   getUser,
   createPermission,

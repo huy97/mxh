@@ -299,11 +299,15 @@ const getListUser = async (req, res, next) => {
         if(hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.READ], req.roles)){
             return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
         }
-        const {keyword = ""} = req.query;
+        const {keyword = "", isLock = ""} = req.query;
         const {start, limit} = defaultStartLimit(req);
         const find = keyword!=="" ? {
             $text : {$search: keyword}
         }  : {};
+        if(isLock !== "") {
+            let lock = isLock == 0 ? true : false; 
+            find.isLock = lock;
+        }
         const queryUser = User.find(find).skip(start).limit(limit);
         const queryTotal = User.countDocuments(find);
         const [users, total] = await Promise.all([queryUser, queryTotal]);

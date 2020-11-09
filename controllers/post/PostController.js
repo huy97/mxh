@@ -113,7 +113,7 @@ const getList = async (req, res, next) => {
     try{
         const {userId} = req.params;
         const {start, limit} = defaultStartLimit(req);
-        const match = {};
+        const match = {isShow: true};
         if(userId && Types.ObjectId(userId)){
             match.userId = Types.ObjectId(userId);
         }
@@ -444,11 +444,114 @@ const getListByAdmin = async (req, res, next) => {
     }
 }
 
+const togglePost = async (req, res, next) => {
+    try {
+        const {postId, isShow} = req.body;
+        let post = await Post.findById({_id: postId});
+        if(!post) {
+            return baseResponse.error(res, 422, 'Không tìm thấy bài post');
+        }
+        post.isShow = isShow;
+        await post.save();
+        const postDetail = await Post.aggregate([
+            {
+                $match: {_id: Types.ObjectId(postId)}
+            },
+            {
+                $skip: 0
+            },
+            {
+                $limit: 1
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            {
+                $unwind: "$user"
+            },
+            {
+                $lookup: {
+                    from: "post_likes",
+                    let: {
+                        postId: "$_id"
+                    },
+                    pipeline: [{
+                        "$match": {
+                            $expr: {
+                                $and: [
+                                    { $eq: [ "$postId",  "$$postId" ] },
+                                ]
+                            },
+                            "userId": req.user._id
+                        }
+                    }],
+                    as: "likeInfo"
+                }
+            },
+            {
+                $unwind: {
+                    "path": "$likeInfo",
+                    "preserveNullAndEmptyArrays": true
+                }
+            },
+            {
+                $lookup: {
+                    from: "post_likes",
+                    let: {
+                        postId: "$_id"
+                    },
+                    pipeline: [
+                        {
+                            "$match": {
+                                $expr: {
+                                    $and: [
+                                        { $eq: [ "$postId",  "$$postId" ] },
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$emojiType",
+                                count: {$sum: 1}
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 0,
+                                emojiType: "$_id",
+                                total: "$count"
+                            }
+                        }
+                    ],
+                    as: "likeStats"
+                }
+            },
+            {
+                $project: {
+                    ...projectUserField('user.')
+                }
+            }
+        ]);
+        return baseResponse.success(res, 200, 'Thành công', postDetail[0]);
+    }catch(e) {
+        console.log(e);
+        logger.error(e);
+        baseResponse.error(res);
+    }
+}
+
 module.exports = {
     show,
     getList,
     createPost,
     updatePost,
     deletePost,
-    getListByAdmin
+    getListByAdmin,
+    togglePost,
 }

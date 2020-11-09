@@ -15,6 +15,7 @@ router.get('/admin/get-list-permissions', [], UserAdminController.getPermissions
 router.post('/admin/role/create', [], UserAdminController.createRole);
 //Authenticated here
 router.use(AuthenticateAdmin);
+router.post('/admin/logout', [], UserAdminController.adminLogout);
 router.get('/admin/post/get', [], PostController.getListByAdmin);
 router.put('/admin/role/update', [], UserAdminController.updateRole);
 router.get('/admin/get-user-info', [], UserAdminController.getUser);
@@ -27,5 +28,7 @@ router.post('/admin/version/create', [], VersionController.createVersion);
 router.get('/admin/version/get', [], VersionController.getVersion);
 router.post('/admin/version/delete', [], VersionController.deleteVersion);
 router.put('/admin/version/edit', [], VersionController.updateVersion);
+//post
+router.put('/admin/post/toggle', [], PostController.togglePost);
 
 module.exports = router;

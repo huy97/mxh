@@ -6,7 +6,8 @@ const postSchema = new Schema({
     content: {type: String, default: "", required: true, trim: true},
     userId: {type: mongoose.Types.ObjectId, required: true},
     comment: {type: Number, default: 0},
-    reply: {type: Number, default: 0}
+    reply: {type: Number, default: 0},
+    isShow: {type: Boolean, default: true}
 }, {
     timestamps: true
 });
