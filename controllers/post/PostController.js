@@ -377,7 +377,6 @@ const getListByAdmin = async (req, res, next) => {
                                     { $eq: [ "$postId",  "$$postId" ] },
                                 ]
                             },
-                            "userId": req.user._id
                         }
                     }],
                     as: "likeInfo"
@@ -430,6 +429,7 @@ const getListByAdmin = async (req, res, next) => {
         ]);
         const totalQuery = Post.countDocuments();
         const [post, total] = await Promise.all([postQuery, totalQuery]);
+        logger.info('total' + total);
         baseResponse.success(res, 200, 'Thành công', post, {
             total
         });
