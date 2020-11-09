@@ -116,6 +116,7 @@ const getList = async (req, res, next) => {
         const match = {};
         if(userId && Types.ObjectId(userId)){
             match.userId = Types.ObjectId(userId);
+        } else {
             match.isShow = true
         }
         const postQuery = Post.aggregate([
