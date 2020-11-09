@@ -339,7 +339,6 @@ const deletePost = async (req, res, next) => {
 
 const getListByAdmin = async (req, res, next) => {
     try{
-        const {userId} = req.params;
         const {start, limit} = defaultStartLimit(req);
         const postQuery = Post.aggregate([
             {
@@ -468,31 +467,6 @@ const togglePost = async (req, res, next) => {
             },
             {
                 $unwind: "$user"
-            },
-            {
-                $lookup: {
-                    from: "post_likes",
-                    let: {
-                        postId: "$_id"
-                    },
-                    pipeline: [{
-                        "$match": {
-                            $expr: {
-                                $and: [
-                                    { $eq: [ "$postId",  "$$postId" ] },
-                                ]
-                            },
-                            "userId": req.user._id
-                        }
-                    }],
-                    as: "likeInfo"
-                }
-            },
-            {
-                $unwind: {
-                    "path": "$likeInfo",
-                    "preserveNullAndEmptyArrays": true
-                }
             },
             {
                 $lookup: {
