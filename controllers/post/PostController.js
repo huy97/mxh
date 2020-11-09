@@ -113,9 +113,10 @@ const getList = async (req, res, next) => {
     try{
         const {userId} = req.params;
         const {start, limit} = defaultStartLimit(req);
-        const match = {isShow: true};
+        const match = {};
         if(userId && Types.ObjectId(userId)){
             match.userId = Types.ObjectId(userId);
+            match.isShow = true
         }
         const postQuery = Post.aggregate([
             {
