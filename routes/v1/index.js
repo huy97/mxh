@@ -30,6 +30,7 @@ router.post('/refresh-token', [], AuthController.refreshToken);
 router.get('/provinces', [], ServiceController.getProvinces);
 router.get('/provinces/:provinceId/districts', [], ServiceController.getDistricts);
 router.get('/provinces/:provinceId/districts/:districtId/subdistricts', [], ServiceController.getSubDistricts);
+router.post('/version/check', [], VersionController.checkVersion);
 
 //Authenticated here
 router.use(Authenticate);
@@ -86,6 +87,5 @@ router.get('/notifications', [], NotificationController.getList);
 //Upload
 router.post('/upload/images', [], UploadController.uploadImage);
 //End
-router.post('/version/check', [], VersionController.checkVersion);
 
 module.exports = router;
