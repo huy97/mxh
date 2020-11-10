@@ -509,7 +509,6 @@ const togglePost = async (req, res, next) => {
         ]);
         return baseResponse.success(res, 200, 'Thành công', postDetail[0]);
     }catch(e) {
-        console.log(e);
         logger.error(e);
         baseResponse.error(res);
     }

@@ -88,13 +88,12 @@ const updateVersion = async (req, res, next) => {
 
 const checkVersion = async (req, res, next) => {
   try {
-    const {os, versionCode} = req.body;
-    let versionList = await Version.find({os: os}).sort({createAt: 1});
+    const {os, versionCode, versionName} = req.body;
+    let versionList = await Version.find({os: os}).sort({versionCode: -1});
     let isNew = false;
     update = false;
-    logger.info(versionList);
     if(versionList && versionList.length > 0) {
-      if(versionCode != versionList[0].versionCode) {
+      if(versionCode != versionList[0].versionCode || versionName != versionList[0].versionName ) {
         isNew = true;
       }
       update = versionList[0].isUpdate;

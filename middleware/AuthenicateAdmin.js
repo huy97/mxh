@@ -45,7 +45,6 @@ const AuthenticatedAdmin = async (req, res, next) => {
                 req.roles = roles;
                 next();
             }catch (e) {
-                console.log(e);
                 if(e instanceof jwt.TokenExpiredError){
                     baseResponse.error(res, 419, 'Token đã hết hạn.');
                     return;
