@@ -10,7 +10,6 @@ const createVersion = async (req, res, next) => {
       return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
     }
     const {os, versionCode, versionName, desc, isUpdate} = req.body;
-    console.log(os);
     if(!versionCode || !versionName || !os || !isUpdate) {
       return baseResponse.error(res, 422, 'Vui lòng nhập đầy đủ các trường');
     }
@@ -26,7 +25,6 @@ const createVersion = async (req, res, next) => {
     });
     return baseResponse.success(res, 200, 'Thành công', ver);
   } catch (error) {
-    console.log(error);
     logger.error(error);
     return baseResponse.error(res);
   }
@@ -44,7 +42,6 @@ const getVersion = async (req, res, next) => {
     let total = await Version.countDocuments({os:findOS});
     return baseResponse.success(res, 200, 'Thành công', versionList ? versionList : [], {total: total});
   } catch (error) {
-    console.log(error);
     logger.error(error);
     return baseResponse.error(res);
   }
@@ -63,7 +60,6 @@ const deleteVersion = async (req, res, next) => {
     await version.remove();
     return baseResponse.success(res, 200, 'Thành công', version);
   } catch (error) {
-    console.log(error);
     logger.error(error);
     return baseResponse.error(res);
   }
@@ -85,7 +81,25 @@ const updateVersion = async (req, res, next) => {
     await version.save();
     return baseResponse.success(res, 200, 'Thành công', version);
   } catch (error) {
-    console.log(error);
+    logger.error(error);
+    return baseResponse.error(res);
+  }
+}
+
+const checkVersion = async (req, res, next) => {
+  try {
+    const {os, versionCode} = req.body;
+    let versionList = await Version.find({os: os}).sort({versionCode: -1});
+    let isNew = false;
+    update = false;
+    if(versionList && versionList.length > 0) {
+      if(versionCode != versionList[0].versionCode) {
+        isNew = true;
+      }
+      update = versionList[0].isUpdate;
+    }
+    return baseResponse.success(res, 200, 'Thành công', {isNew, update})
+  } catch (exception) {
     logger.error(error);
     return baseResponse.error(res);
   }
@@ -95,6 +109,7 @@ module.exports = {
   createVersion,
   getVersion,
   deleteVersion,
-  updateVersion
+  updateVersion,
+  checkVersion,
 }
 

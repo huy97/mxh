@@ -20,6 +20,7 @@ const MessageController = require('../../controllers/message/MessageController')
 const NotificationController = require('../../controllers/user/NotificationController');
 const jwt = require('jsonwebtoken');
 const User = require('../../models/User');
+const VersionController = require('../../controllers/admin/VersionController');
 
 router.post('/login', [], AuthController.login);
 router.post('/manager/login', [], AuthController.loginWithPassword);
@@ -85,6 +86,6 @@ router.get('/notifications', [], NotificationController.getList);
 //Upload
 router.post('/upload/images', [], UploadController.uploadImage);
 //End
-
+router.post('/version/check', [], VersionController.checkVersion);
 
 module.exports = router;
