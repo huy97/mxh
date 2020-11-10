@@ -66,7 +66,7 @@ const createAdmin = async (req, res, next) => {
       password: passwordHash,
       uid: username
     }
-    let defaultRoleId = 1;
+    let defaultRoleId = 2;
     const user = await UserAdmin.create(userObj);
     await user.save();
     user.password = '';
@@ -190,6 +190,19 @@ const updateRole = async (req, res, next) => {
   }
 }
 
+const deleteRole = async (req, res, next) => {
+  const {roleId} = req.body;
+  try{
+      if(roleId == 1 || roleId == 2 || roleId == 3 || roleId == 4 || roleId == 5 || roleId == 6) {
+        return baseResponse.success(res, 422, 'Không thể xóa các quyền mặc định');
+      } 
+      const role = await roleModel.deleteOne({roleId});
+      return baseResponse.success(res, 200, 'Thành công');
+  }catch(e){
+      return baseResponse.error(res);
+  }
+}
+
 module.exports = {
   adminLogin,
   adminLogout,
@@ -200,4 +213,5 @@ module.exports = {
   getListRoles,
   getPermissions,
   updateRole,
+  deleteRole,
 }

@@ -9,17 +9,18 @@ const PostController = require('../../controllers/post/PostController');
 
 router.post('/admin/login', [], UserAdminController.adminLogin);
 
-router.post('/admin/user/create', [], UserAdminController.createAdmin);
 router.post('/admin/permission/create', [], UserAdminController.createPermission);
 router.get('/admin/get-list-permissions', [], UserAdminController.getPermissions);
 router.post('/admin/role/create', [], UserAdminController.createRole);
 //Authenticated here
 router.use(AuthenticateAdmin);
+router.post('/admin/user/create', [], UserAdminController.createAdmin);
 router.post('/admin/logout', [], UserAdminController.adminLogout);
 router.get('/admin/post/get', [], PostController.getListByAdmin);
 router.put('/admin/role/update', [], UserAdminController.updateRole);
 router.get('/admin/get-user-info', [], UserAdminController.getUser);
 router.get('/admin/get-list-roles', [], UserAdminController.getListRoles);
+router.post('/admin/role/delete', [], UserAdminController.deleteRole);
 //end user
 router.get('/admin/get-list-end-user', [], UserController.getListUser)
 router.put('/admin/user/toogle-lock', [], UserController.toogleLock)
