@@ -37,7 +37,6 @@ const adminLogin = async (req, res, next) => {
       accessToken: token,
   });
   } catch(e){
-    console.log(e);
     logger.error(e);
     return baseResponse.error(res);
   }
@@ -52,7 +51,6 @@ const adminLogout = async (req, res, next) => {
     }
     baseResponse.success(res, 200, 'Đăng xuất thành công.');
   }catch(e) {
-    console.log(e);
     logger.error(e);
     return baseResponse.error(res);
   }
@@ -82,7 +80,6 @@ const createAdmin = async (req, res, next) => {
     let match = {
       _id: Types.ObjectId(user.id)
     };
-    console.log(user.id);
     let result = await UserAdmin.aggregate([
       {
           $match: match
@@ -106,7 +103,6 @@ const createAdmin = async (req, res, next) => {
     ]);
     return baseResponse.json(res, 200, 'Thành công', {data: result[0]});
   } catch(e) {
-    console.log(e);
     logger.error(e);
     return baseResponse.error(res);
   }
@@ -117,7 +113,6 @@ const getUser = async (req, res, next) => {
     roles = Array.from(new Set(req.roles));
     return baseResponse.success(res, 200, 'Thành công', {info: req.user, permissions: roles})
   } catch(e) {
-    console.log(e);
     logger.error(e);
     return baseResponse.error(res);
   }
@@ -132,7 +127,6 @@ const createPermission = async (req, res, next) => {
     });
     baseResponse.success(res, 200, 'Thành công')
   } catch (e) {
-    console.log(e);
     logger.error(e);
     return baseResponse.error(res);
   }
@@ -181,7 +175,6 @@ const getPermissions = async (req, res, next) => {
       const [result, total] = await Promise.all([resultQuery, totalQuery]);
       return baseResponse.success(res, 200, 'Thành công', result, {total: total});
   }catch(e){
-    console.log(e);
       return baseResponse.error(res);
   }
 }
@@ -205,7 +198,6 @@ const updateRole = async (req, res, next) => {
       result.save();
       return baseResponse.success(res, 200, 'Thành công', result);
   }catch(e){
-    console.log(e);
       return baseResponse.error(res);
   }
 }
@@ -219,7 +211,6 @@ const deleteRole = async (req, res, next) => {
       const role = await UserAdminRole.deleteOne({roleId});
       return baseResponse.success(res, 200, 'Thành công');
   }catch(e){
-      console.log(e);
       return baseResponse.error(res);
   }
 }
@@ -240,7 +231,6 @@ const changePassword = async (req, res, next) => {
     userAdmin.save();
     return baseResponse.success(res, 200, 'Thành công');
   }catch(e) {
-    console.log(e);
     return baseResponse.error(res);
   }
 }
@@ -280,7 +270,6 @@ const getListUserAdmin = async (req, res, next) => {
     let [data, total] = await Promise.all([listUser, totalUser]);
     return baseResponse.success(res, 200, 'Thành công', data, {total});
   } catch (error) {
-    console.log(error);
     logger.error(error);
     return baseResponse.error(res);
   }
@@ -334,7 +323,6 @@ const updateUser = async (req, res, next) => {
       const [newUser] = await Promise.all([usersQuery]);
       return baseResponse.success(res, 200, 'Thành công', newUser[0]);
   }catch (e) {
-      console.log(e);
       return baseResponse.error(res);
   }
 };  
@@ -408,7 +396,6 @@ const updateUserRoles = async (req, res, next) => {
     const [newUser] = await Promise.all([usersQuery]);
     return baseResponse.success(res, 200, 'Thành công', newUser[0]);
   }catch(e){
-      console.log(e); 
       return baseResponse.error(res);
   }
 }

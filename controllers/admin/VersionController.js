@@ -89,7 +89,8 @@ const updateVersion = async (req, res, next) => {
 const checkVersion = async (req, res, next) => {
   try {
     const {os, versionCode, versionName} = req.body;
-    let versionList = await Version.find({os: os}).sort({versionCode: -1});
+    let versionList = await Version.find({os: os}).sort({_id: -1});
+    console.log(versionList);
     let isNew = false;
     update = false;
     if(versionList && versionList.length > 0) {
