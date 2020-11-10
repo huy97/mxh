@@ -374,6 +374,7 @@ const updateUserRoles = async (req, res, next) => {
       }
       if(roleId === 1) {
         let numRole = await UserRole.countDocuments({roleId: 1});
+        logger.info('numrole ' + numRole);
         if(numRole >= 2) {
           return baseResponse.error(res, 422, 'Chỉ có thể có 2 Super Admin');
         }
