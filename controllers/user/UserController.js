@@ -296,7 +296,7 @@ const deleteUser = async (req, res, next) => {
 
 const getListUser = async (req, res, next) => {
     try{
-        if(hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.READ], req.roles)){
+        if(!hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.READ], req.roles)){
             return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
         }
         const {keyword = "", isLock = ""} = req.query;
@@ -322,7 +322,7 @@ const getListUser = async (req, res, next) => {
 
 const toogleLock = async (req, res, next) => {
     try{
-        if(hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.UPDATE], req.roles)){
+        if(!hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.UPDATE], req.roles)){
             return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
         }
         const {id, setLock} = req.body;

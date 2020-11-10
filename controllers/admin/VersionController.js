@@ -6,7 +6,7 @@ const { base } = require("../../models/Version");
 
 const createVersion = async (req, res, next) => {
   try {
-    if(hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.CREATE], req.roles)) {
+    if(!hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.CREATE], req.roles)) {
       return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
     }
     const {os, versionCode, versionName, desc, isUpdate} = req.body;
@@ -34,7 +34,7 @@ const createVersion = async (req, res, next) => {
 
 const getVersion = async (req, res, next) => {
   try {
-    if(hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.READ], req.roles)) {
+    if(!hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.READ], req.roles)) {
       return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
     }
     const {start, limit} = defaultStartLimit(req);
@@ -52,7 +52,7 @@ const getVersion = async (req, res, next) => {
 
 const deleteVersion = async (req, res, next) => {
   try {
-    if(hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.DELETE], req.roles)) {
+    if(!hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.DELETE], req.roles)) {
       return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
     }
     const {id} = req.body;
@@ -71,7 +71,7 @@ const deleteVersion = async (req, res, next) => {
 
 const updateVersion = async (req, res, next) => {
   try {
-    if(hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.DELETE], req.roles)) {
+    if(!hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.DELETE], req.roles)) {
       return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
     }
     const {id, versionName, desc, isUpdate} = req.body;

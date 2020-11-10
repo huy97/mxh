@@ -7,6 +7,8 @@ const Perrmisstion = require("../../models/Permisstion");
 const { PERMISSION_CODE } = require("../../utils/constant");
 const jwt = require("jsonwebtoken");
 const bcryptjs = require('bcryptjs');
+const { Types } = require("mongoose");
+const {validationResult} =  require("express-validator");
 
 const adminLogin = async (req, res, next) => {
   try{
@@ -59,6 +61,9 @@ const adminLogout = async (req, res, next) => {
 const createAdmin = async (req, res, next) => {
   try {
     const {username, pwd, fullName} = req.body;
+    if(!hasPermission([PERMISSION_CODE.MANAGER], req.roles)) {
+      return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
+    }
     const passwordHash = await bcryptjs.hashSync(pwd, 10);
     let userObj = {
       fullName,
@@ -69,16 +74,37 @@ const createAdmin = async (req, res, next) => {
     let defaultRoleId = 2;
     const user = await UserAdmin.create(userObj);
     await user.save();
-    user.password = '';
-   
+    user.password = '';   
     await UserRole.create({
       userId: user.id,
       roleId: defaultRoleId
     });
-
-    return baseResponse.json(res, 200, 'Thành công', {
-      user
-  });
+    let match = {
+      _id: Types.ObjectId(user.id)
+    };
+    console.log(user.id);
+    let result = await UserAdmin.aggregate([
+      {
+          $match: match
+      },
+      {
+          $lookup: {
+              from: 'user_roles',
+              localField: "_id",
+              foreignField: "userId",
+              as: 'roles'
+          }
+      },
+      {
+          $lookup: {
+              from: 'useradminroles',
+              localField: "roles.roleId",
+              foreignField: "roleId",
+              as: 'roles'
+          }
+      }
+    ]);
+    return baseResponse.json(res, 200, 'Thành công', {data: result[0]});
   } catch(e) {
     console.log(e);
     logger.error(e);
@@ -87,14 +113,8 @@ const createAdmin = async (req, res, next) => {
 }
 
 const getUser = async (req, res, next) => {
-  let roles = [];
   try {
-    req.roles.map((role) => {
-      role.useradminroles.map((roleTemp) => {
-        roles = [...roles, ...roleTemp.permissionCodes];
-      });
-    });
-    roles = Array.from(new Set(roles));
+    roles = Array.from(new Set(req.roles));
     return baseResponse.success(res, 200, 'Thành công', {info: req.user, permissions: roles})
   } catch(e) {
     console.log(e);
@@ -121,7 +141,7 @@ const createPermission = async (req, res, next) => {
 const createRole = async (req, res, next) => {
   const {description, permissionCodes} = req.body;
     try{
-        if(hasPermission([PERMISSION_CODE.MANAGER], req.roles)) {
+        if(!hasPermission([PERMISSION_CODE.MANAGER], req.roles)) {
           return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
         }
         const total = await UserAdminRole.countDocuments();
@@ -140,7 +160,7 @@ const createRole = async (req, res, next) => {
 
 const getListRoles = async (req, res, next) => {
   try{
-    if(hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.READ], req.roles)) {
+    if(!hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.READ], req.roles)) {
       return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
     }
     const {skip, limit} = defaultStartLimit(req);
@@ -169,7 +189,7 @@ const getPermissions = async (req, res, next) => {
 const updateRole = async (req, res, next) => {
   const {description, permissionCodes, id} = req.body;
   try{
-      if(hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.UPDATE], req.roles)) {
+      if(!hasPermission([PERMISSION_CODE.MANAGER, PERMISSION_CODE.UPDATE], req.roles)) {
         return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
       }
       const result = await UserAdminRole.findOne({roleId: id});
@@ -196,9 +216,198 @@ const deleteRole = async (req, res, next) => {
       if(roleId == 1 || roleId == 2 || roleId == 3 || roleId == 4 || roleId == 5 || roleId == 6) {
         return baseResponse.success(res, 422, 'Không thể xóa các quyền mặc định');
       } 
-      const role = await roleModel.deleteOne({roleId});
+      const role = await UserAdminRole.deleteOne({roleId});
       return baseResponse.success(res, 200, 'Thành công');
   }catch(e){
+      console.log(e);
+      return baseResponse.error(res);
+  }
+}
+
+const changePassword = async (req, res, next) => {
+  try {
+    let userAdmin = await UserAdmin.findById({_id: req.user._id});
+    let {oldPassword, newPassword} = req.body;
+    const verifyPassword = bcryptjs.compareSync(oldPassword, userAdmin.password);
+    if(!verifyPassword) {
+      return baseResponse.error(res, 422, 'Mật khẩu hiển tại không chính xác');
+    }
+    if(oldPassword == newPassword) {
+      return baseResponse.error(res, 422, 'Mật khẩu mới trùng với mật khẩu cũ');
+    }
+    const passwordHash = await bcryptjs.hashSync(newPassword, 10);
+    userAdmin.password = passwordHash;
+    userAdmin.save();
+    return baseResponse.success(res, 200, 'Thành công');
+  }catch(e) {
+    console.log(e);
+    return baseResponse.error(res);
+  }
+}
+
+const getListUserAdmin = async (req, res, next) => {
+  try {
+    const {start, limit} = defaultStartLimit(req);
+    let match = {};
+    let listUser = UserAdmin.aggregate([
+      {
+          $match: match
+      },
+      {
+        $skip: start,
+      },
+      {
+        $limit: limit,
+      },
+      {
+          $lookup: {
+              from: 'user_roles',
+              localField: "_id",
+              foreignField: "userId",
+              as: 'roles'
+          }
+      },
+      {
+          $lookup: {
+              from: 'useradminroles',
+              localField: "roles.roleId",
+              foreignField: "roleId",
+              as: 'roles'
+          }
+      }
+  ]);
+    let totalUser = UserAdmin.countDocuments();
+    let [data, total] = await Promise.all([listUser, totalUser]);
+    return baseResponse.success(res, 200, 'Thành công', data, {total});
+  } catch (error) {
+    console.log(error);
+    logger.error(error);
+    return baseResponse.error(res);
+  }
+};
+
+const updateUser = async (req, res, next) => {
+  const {userId, fullName, newPassword} = req.body;
+  const errors = validationResult(req);
+  if(!errors.isEmpty()){
+      return defaultResponse(res, 422, 'Vui lòng nhập đủ thông tin', null, errors.array());
+  }
+  try{
+      if(userId !== req.user.id){
+          if(!hasPermission([PERMISSION_CODE.MANAGER], req.roles)){
+              return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
+          }
+      }
+      let user = await UserAdmin.findById(userId);
+      if(!user){
+          return baseResponse.error(res, 422, 'User không tồn tại.');
+      }
+      if(newPassword){
+        const passwordHash = await bcrypt.hashSync(newPassword, SALT_ROUND);
+        user.password = passwordHash;
+    }
+      user.fullName = fullName;
+      await user.save();
+      let usersQuery = UserAdmin.aggregate([
+          {
+              $match: {
+                  _id: user._id
+              }
+          },
+          {
+              $lookup: {
+                  from: 'user_roles',
+                  localField: "_id",
+                  foreignField: "userId",
+                  as: 'roles'
+              }
+          },
+          {
+            $lookup: {
+              from: 'useradminroles',
+              localField: "roles.roleId",
+              foreignField: "roleId",
+              as: 'roles'
+            }
+          }
+      ]);
+      const [newUser] = await Promise.all([usersQuery]);
+      return baseResponse.success(res, 200, 'Thành công', newUser[0]);
+  }catch (e) {
+      console.log(e);
+      return baseResponse.error(res);
+  }
+};  
+
+const deleteUser = async (req, res, next) => {
+  const {userId} = req.body;
+  try{
+      if(!hasPermission([PERMISSION_CODE.MANAGER], req.roles)){
+        return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này.');
+      }
+      if(userId === req.user.id){
+          return baseResponse.error(res, 422, 'Bạn không thể xoá chính bạn.');
+      }
+      let user = await UserAdmin.findById(userId);
+      if(!user){
+          return baseResponse.error(res, 422, 'User không tồn tại.');
+      }
+      if(user.username === 'root') {
+        return baseResponse.error(res, 422, 'Không thể xóa tài khoản này');
+      }
+      await user.delete();
+      return baseResponse.success(res, 200, 'Thành công', {
+          data: user
+      });
+  }catch(e){
+      return baseResponse.error(res);
+  }
+}
+
+const updateUserRoles = async (req, res, next) => {
+  const {} = req.params;
+  const {userId, roleId} = req.body;
+  try{
+      let user = await UserAdmin.findById(userId);
+      if(!user){
+          return baseResponse.error(res, 422, 'User không tồn tại.');
+      }
+      if(roleId === 1) {
+        let numRole = await UserRole.countDocuments({roleId: 1});
+        if(numRole >= 2) {
+          return baseResponse.error(res, 422, 'Chỉ có thể có 2 Super Admin');
+        }
+      }
+      let userRole = await UserRole.findOne({userId: userId});
+      userRole.roleId = roleId;
+      await userRole.save();
+      let usersQuery = UserAdmin.aggregate([
+        {
+            $match: {
+                _id: user._id
+            }
+        },
+        {
+            $lookup: {
+                from: 'user_roles',
+                localField: "_id",
+                foreignField: "userId",
+                as: 'roles'
+            }
+        },
+        {
+          $lookup: {
+            from: 'useradminroles',
+            localField: "roles.roleId",
+            foreignField: "roleId",
+            as: 'roles'
+          }
+        }
+    ]);
+    const [newUser] = await Promise.all([usersQuery]);
+    return baseResponse.success(res, 200, 'Thành công', newUser[0]);
+  }catch(e){
+      console.log(e); 
       return baseResponse.error(res);
   }
 }
@@ -214,4 +423,9 @@ module.exports = {
   getPermissions,
   updateRole,
   deleteRole,
+  changePassword,
+  getListUserAdmin,
+  updateUser,
+  deleteUser,
+  updateUserRoles
 }

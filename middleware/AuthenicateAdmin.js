@@ -37,10 +37,15 @@ const AuthenticatedAdmin = async (req, res, next) => {
                         }
                     }
                 ]);
+                let roles = [];
+                userRole[0].useradminroles.map((roleTemp) => {
+                    roles = [...roles, ...roleTemp.permissionCodes];
+                });
                 req.user = user;
-                req.roles = userRole;
+                req.roles = roles;
                 next();
             }catch (e) {
+                console.log(e);
                 if(e instanceof jwt.TokenExpiredError){
                     baseResponse.error(res, 419, 'Token đã hết hạn.');
                     return;

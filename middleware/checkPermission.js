@@ -1,14 +1,12 @@
 const {baseResponse} = require('../utils/helper');
 
-const hasPermission = (permission = [], roles = []) => {
+const hasPermission = (permission = [], roles = []) => {    
     let hasPermission = false;
     permission.map((per) => {
-        roles.map((role) => {
-            if(role.permissionCodes && Array.isArray(role.permissionCodes) && role.permissionCodes.includes(per)){
-                hasPermission = true;
-                return false;
-            }
-        });
+        if(roles.includes(per)) {
+            hasPermission = true;
+            return false;
+        }
     });
     return hasPermission;
 }
