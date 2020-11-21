@@ -135,9 +135,9 @@ const createPermission = async (req, res, next) => {
 const createRole = async (req, res, next) => {
   const {description, permissionCodes} = req.body;
     try{
-        if(!hasPermission([PERMISSION_CODE.MANAGER], req.roles)) {
-          return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
-        }
+        // if(!hasPermission([PERMISSION_CODE.MANAGER], req.roles)) {
+        //   return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
+        // }
         const total = await UserAdminRole.countDocuments();
         let roleId = total + 1;
         const role = await UserAdminRole.create({
