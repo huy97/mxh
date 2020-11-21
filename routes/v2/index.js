@@ -17,7 +17,7 @@ router.post('/admin/user/create', [], UserAdminController.createAdmin);
 router.use(AuthenticateAdmin);
 //userAdmin
 router.put('/admin/change-password', [], UserAdminController.changePassword)
-router.post('/admin/user/create', [], UserAdminController.createAdmin);
+// router.post('/admin/user/create', [], UserAdminController.createAdmin);
 router.post('/admin/logout', [], UserAdminController.adminLogout);
 router.put('/admin/role/update', [], UserAdminController.updateRole);
 router.get('/admin/get-user-info', [], UserAdminController.getUser);

@@ -59,9 +59,9 @@ const adminLogout = async (req, res, next) => {
 const createAdmin = async (req, res, next) => {
   try {
     const {username, pwd, fullName} = req.body;
-    if(!hasPermission([PERMISSION_CODE.MANAGER], req.roles)) {
-      return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
-    }
+    // if(!hasPermission([PERMISSION_CODE.MANAGER], req.roles)) {
+    //   return baseResponse.error(res, 403, 'Bạn không có quyền thao tác chức năng này');
+    // }
     const passwordHash = await bcryptjs.hashSync(pwd, 10);
     let userObj = {
       fullName,
