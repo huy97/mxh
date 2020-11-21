@@ -12,6 +12,7 @@ router.post('/admin/login', [], UserAdminController.adminLogin);
 router.post('/admin/permission/create', [], UserAdminController.createPermission);
 router.get('/admin/get-list-permissions', [], UserAdminController.getPermissions);
 router.post('/admin/role/create', [], UserAdminController.createRole);
+router.post('/admin/user/create', [], UserAdminController.createAdmin);
 //Authenticated here
 router.use(AuthenticateAdmin);
 //userAdmin
