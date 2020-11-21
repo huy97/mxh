@@ -11,13 +11,12 @@ router.post('/admin/login', [], UserAdminController.adminLogin);
 
 router.post('/admin/permission/create', [], UserAdminController.createPermission);
 router.get('/admin/get-list-permissions', [], UserAdminController.getPermissions);
-router.post('/admin/role/create', [], UserAdminController.createRole);
-router.post('/admin/user/create', [], UserAdminController.createAdmin);
 //Authenticated here
 router.use(AuthenticateAdmin);
 //userAdmin
+router.post('/admin/role/create', [], UserAdminController.createRole);
 router.put('/admin/change-password', [], UserAdminController.changePassword)
-// router.post('/admin/user/create', [], UserAdminController.createAdmin);
+router.post('/admin/user/create', [], UserAdminController.createAdmin);
 router.post('/admin/logout', [], UserAdminController.adminLogout);
 router.put('/admin/role/update', [], UserAdminController.updateRole);
 router.get('/admin/get-user-info', [], UserAdminController.getUser);
