@@ -83,7 +83,7 @@ const loginWithApple = async (req, res, next) => {
             jwt.sign({uid: user.id,  exp: tokenExpiredAt}, global.privateKey),
             jwt.sign({uid: user.id,  exp: refreshTokenExpiredAt}, global.privateKey)
         ]);
-        const avatarPath = 'static/images/avatar/' + user.id + '_' + slugify(name).toLowerCase() + '.png';
+        const avatarPath = 'static/images/avatar/' + user.id + '_' + slugify(fullName).toLowerCase() + '.png';
         await fs.createWriteStream(avatarPath);
         user.avatar = getStaticUrl(avatarPath);
         user.accessToken = token;
