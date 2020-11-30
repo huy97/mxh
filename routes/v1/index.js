@@ -23,6 +23,7 @@ const User = require('../../models/User');
 const VersionController = require('../../controllers/admin/VersionController');
 
 router.post('/login', [], AuthController.login);
+router.post('/login-apple', [], AuthController.loginWithApple);
 router.post('/manager/login', [], AuthController.loginWithPassword);
 router.post('/refresh-token', [], AuthController.refreshToken);
 

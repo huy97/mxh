@@ -63,6 +63,46 @@ const login = async (req, res, next) => {
     }
 }
 
+const loginWithApple = async (req, res, next) => {
+    try{
+        const {id, fullName, email} = req.body;
+        let user = await User.findOne({uid: id});
+        if(!user){
+            user = await User.create({
+                uid: id,
+                email: email,
+                fullName: fullName
+            });
+        }
+        if(user.isLock) {
+            return baseResponse.error(res, 422, 'Tài khoản của bạn đã bị khóa');
+        }
+        const tokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 30);
+        const refreshTokenExpiredAt = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 60);
+        const [token, refreshToken] = await Promise.all([
+            jwt.sign({uid: user.id,  exp: tokenExpiredAt}, global.privateKey),
+            jwt.sign({uid: user.id,  exp: refreshTokenExpiredAt}, global.privateKey)
+        ]);
+        if(!user.avatar && picture.data && picture.data.url){
+            const avatarPath = 'static/images/avatar/' + user.id + '_' + slugify(name).toLowerCase() + '.png';
+            request(picture.data.url).pipe(fs.createWriteStream(avatarPath));
+            user.avatar = getStaticUrl(avatarPath);
+        }
+        user.accessToken = token;
+        user.refreshToken = refreshToken;
+        await user.save();
+        baseResponse.json(res, 200, 'Đăng nhập thành công.', {
+            accessToken: token,
+            refreshToken: refreshToken,
+            expiredAt: tokenExpiredAt,
+            user: user
+        });
+    }catch(e) {
+        logger.error(e);
+        baseResponse.error(res);
+    }
+};
+
 const loginWithPassword = async (req, res, next) => {
     try{
         const {username, password} = req.body;
@@ -138,5 +178,6 @@ const refreshToken = async (req, res, next) => {
 module.exports = {
     login,
     loginWithPassword,
-    refreshToken
+    refreshToken,
+    loginWithApple
 }
