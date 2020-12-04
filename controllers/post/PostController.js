@@ -116,6 +116,9 @@ const getList = async (req, res, next) => {
         const match = {};
         if(userId && Types.ObjectId(userId)){
             match.userId = Types.ObjectId(userId);
+            if(Types.ObjectId(userId) !== req.user._id){
+                match.isShow = true;
+            }
         } else {
             match.isShow = true
         }
