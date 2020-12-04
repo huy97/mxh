@@ -385,12 +385,6 @@ const getListByAdmin = async (req, res, next) => {
                 }
             },
             {
-                $unwind: {
-                    "path": "$likeInfo",
-                    "preserveNullAndEmptyArrays": true
-                }
-            },
-            {
                 $lookup: {
                     from: "post_likes",
                     let: {
