@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const postSchema = new Schema({
-    title: {type: String, default: "", required: true},
+    title: {type: String, default: ""},
     content: {type: String, default: "", required: true, trim: true},
     userId: {type: mongoose.Types.ObjectId, required: true},
     comment: {type: Number, default: 0},
