@@ -308,7 +308,7 @@ const getListUser = async (req, res, next) => {
             let lock = isLock == 0 ? true : false; 
             find.isLock = lock;
         }
-        const queryUser = User.find(find).skip(start).limit(limit);
+        const queryUser = User.find(find).sort({createdAt: -1}).skip(start).limit(limit);
         const queryTotal = User.countDocuments(find);
         const [users, total] = await Promise.all([queryUser, queryTotal]);
         baseResponse.success(res, 200, 'Thành công', users, {
